@@ -5,19 +5,20 @@ import 'splash.dart';
 import 'welcome.dart';
 import 'login.dart';
 import 'signup.dart';
-import 'auth.dart';             // ForgotPasswordScreen, EmailVerifyScreen
-import 'onboard.dart';          // OnboardingFlow
-import 'onboarding.dart';       // OnboardingWearable, OnboardingRPPG, OnboardingComplete
-import 'dashboard.dart';        // DashboardScreen
-import 'checkin.dart';          // MorningCheckinScreen, AfternoonCheckinScreen, EveningCheckinScreen
-import 'cycle.dart' hide MorningCheckinScreen, AfternoonCheckinScreen, EveningCheckinScreen;
-import 'weekly_tools.dart';     // MfgScreen, Phq4Screen
-import 'clinical_screens.dart'; // LabUploadScreen, UltrasoundUploadScreen, ClinicalStatusScreen
-import 'risk_screens.dart';     // RiskScoreScreen, RiskTrendScreen, ShapDetailScreen,
-                                // TriageNoLabsScreen, PeriodLogScreen, ClinicalReferralScreen
-import 'referral_pdf.dart';     // ReferralScreen, ClinicalPdfScreen
-import 'profile.dart';          // ProfileScreen
-import 'profile.dart';   // NotificationSettingsScreen, ConnectedDevicesScreen, DataPrivacyScreen
+import 'auth.dart';              // ForgotPasswordScreen only
+import 'email_verify.dart';      // EmailVerifyScreen (6-digit OTP)
+import 'onboard.dart';           // OnboardingFlow
+import 'onboarding.dart';        // OnboardingWearable, OnboardingRPPG, OnboardingComplete
+import 'dashboard.dart';         // DashboardScreen
+import 'checkin.dart';           // MorningCheckinScreen, EveningCheckinScreen
+import 'cycle.dart';             // CycleCalendarScreen
+import 'weekly_tools.dart';      // WeeklyToolsScreen, MfgScreen, Phq4Screen
+import 'clinical_screens.dart';  // LabUploadScreen, UltrasoundUploadScreen, ClinicalStatusScreen
+import 'risk_screens.dart';      // RiskScoreScreen, RiskTrendScreen, ShapDetailScreen,
+                                 // TriageNoLabsScreen, PeriodLogScreen
+import 'referral_pdf.dart';      // ReferralScreen, ClinicalPdfScreen
+import 'profile.dart';           // ProfileScreen, NotificationSettingsScreen,
+                                 // ConnectedDevicesScreen, DataPrivacyScreen
 
 void main() {
   runApp(const MyApp());
@@ -55,7 +56,6 @@ class MyApp extends StatelessWidget {
 
         // ── Check-ins ──────────────────────────────────────────────────────
         AppRoutes.morningCheckin:    (_) => const MorningCheckinScreen(),
-        AppRoutes.afternoonCheckin:  (_) => const AfternoonCheckinScreen(),
         AppRoutes.eveningCheckin:    (_) => const EveningCheckinScreen(),
 
         // ── Cycle ──────────────────────────────────────────────────────────
@@ -63,6 +63,7 @@ class MyApp extends StatelessWidget {
         AppRoutes.cycleCalendar:     (_) => const CycleCalendarScreen(),
 
         // ── Weekly Tools ───────────────────────────────────────────────────
+        AppRoutes.weeklyTools:       (_) => const WeeklyToolsScreen(),
         AppRoutes.mfgScreen:         (_) => const MfgScreen(),
         AppRoutes.phq4Screen:        (_) => const Phq4Screen(),
 
@@ -100,7 +101,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// Placeholder for routes not yet fully implemented.
 class _StubScreen extends StatelessWidget {
   final String title;
   const _StubScreen({required this.title});

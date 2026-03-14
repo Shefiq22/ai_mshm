@@ -76,22 +76,20 @@ class _SignupScreenState extends State<SignupScreen>
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.cardBorder),
                     ),
-                    child: Row(
-                      children: [
-                        _RoleTab(
-                          label: 'Patient',
-                          icon: Icons.person_outline,
-                          selected: _role == 0,
-                          onTap: () => setState(() => _role = 0),
-                        ),
-                        _RoleTab(
-                          label: 'Clinician',
-                          icon: Icons.medical_services_outlined,
-                          selected: _role == 1,
-                          onTap: () => setState(() => _role = 1),
-                        ),
-                      ],
-                    ),
+                    child: Row(children: [
+                      _RoleTab(
+                        label: 'Patient',
+                        icon: Icons.person_outline,
+                        selected: _role == 0,
+                        onTap: () => setState(() => _role = 0),
+                      ),
+                      _RoleTab(
+                        label: 'Clinician',
+                        icon: Icons.medical_services_outlined,
+                        selected: _role == 1,
+                        onTap: () => setState(() => _role = 1),
+                      ),
+                    ]),
                   ),
                   const SizedBox(height: 24),
                   Text('Full Name', style: AppTextStyles.inputLabel),
@@ -145,7 +143,8 @@ class _SignupScreenState extends State<SignupScreen>
                     decoration: InputDecoration(
                       hintText: 'Re-enter password',
                       suffixIcon: GestureDetector(
-                        onTap: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                        onTap: () =>
+                            setState(() => _obscureConfirm = !_obscureConfirm),
                         child: Icon(
                           _obscureConfirm
                               ? Icons.visibility_off_outlined
@@ -157,10 +156,11 @@ class _SignupScreenState extends State<SignupScreen>
                     ),
                   ),
                   const SizedBox(height: 28),
+                  // ── Routes to email verify, not onboarding directly ────
                   PrimaryButton(
                     label: 'Create Account',
-                    onPressed: () => Navigator.pushReplacementNamed(
-                        context, AppRoutes.OnboardingFlow),
+                    onPressed: () => Navigator.pushNamed(
+                        context, AppRoutes.emailVerify),
                   ),
                   const SizedBox(height: 32),
                   Center(
@@ -219,14 +219,12 @@ class _RoleTab extends StatelessWidget {
               Icon(icon, size: 16,
                   color: selected ? Colors.white : AppColors.textMedium),
               const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: selected ? Colors.white : AppColors.textMedium,
-                ),
-              ),
+              Text(label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: selected ? Colors.white : AppColors.textMedium,
+                  )),
             ],
           ),
         ),

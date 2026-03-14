@@ -1,6 +1,307 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_textstyles.dart';
+import 'routes.dart';
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── WeeklyToolsScreen — Landing screen ───────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+class WeeklyToolsScreen extends StatelessWidget {
+  const WeeklyToolsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          // ── Teal gradient header ──────────────────────────────────────
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.gradientStart, AppColors.gradientEnd],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 16, 20),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.white, size: 22),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 4),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Weekly Tools',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700)),
+                        Text('Clinical assessments due this week',
+                            style: TextStyle(
+                                color: Colors.white70, fontSize: 13)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Body ──────────────────────────────────────────────────────
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Info banner
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Weekly Clinical Assessments',
+                            style: AppTextStyles.cardTitle
+                                .copyWith(fontSize: 15)),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Complete both assessments once per week to track your symptoms over time. '
+                          'Your responses help build a longitudinal picture for accurate PCOS risk scoring.',
+                          style: AppTextStyles.cardSubtitle,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Hirsutism Score card
+                  _AssessmentCard(
+                    icon: Icons.content_cut_outlined,
+                    iconBg: const Color(0xFF2AAFAA),
+                    title: 'Hirsutism Score',
+                    subtitle: 'Modified Ferriman-Gallwey (mFG)',
+                    description:
+                        'Quantify hair growth patterns across 8 body zones to assess hyperandrogenism.',
+                    frequency: 'Weekly',
+                    lastDone: 'Last: 7 days ago',
+                    isDue: true,
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.mfgScreen),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Mental Wellness card
+                  _AssessmentCard(
+                    icon: Icons.psychology_outlined,
+                    iconBg: const Color(0xFF2AAFAA),
+                    title: 'Mental Wellness',
+                    subtitle: 'PHQ-4 Assessment',
+                    description:
+                        'Ultra-brief validated screening for anxiety (GAD-2) and depression (PHQ-2).',
+                    frequency: 'Weekly',
+                    lastDone: 'Last: 7 days ago',
+                    isDue: true,
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.phq4Screen),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Progress card
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceLight,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("This Week's Progress",
+                                style: AppTextStyles.cardTitle
+                                    .copyWith(fontSize: 14)),
+                            Text('0/2 completed',
+                                style: AppTextStyles.cardSubtitle),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: const LinearProgressIndicator(
+                                  value: 0,
+                                  minHeight: 6,
+                                  backgroundColor: AppColors.progressBg,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.progressFill),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
+                                child: const LinearProgressIndicator(
+                                  value: 0,
+                                  minHeight: 6,
+                                  backgroundColor: AppColors.progressBg,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      AppColors.progressFill),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Assessment card widget ────────────────────────────────────────────────────
+class _AssessmentCard extends StatelessWidget {
+  final IconData icon;
+  final Color iconBg;
+  final String title, subtitle, description, frequency, lastDone;
+  final bool isDue;
+  final VoidCallback onTap;
+
+  const _AssessmentCard({
+    required this.icon,
+    required this.iconBg,
+    required this.title,
+    required this.subtitle,
+    required this.description,
+    required this.frequency,
+    required this.lastDone,
+    required this.isDue,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceWhite,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.cardBorder),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 14),
+
+            // Text content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(title,
+                          style: AppTextStyles.cardTitle
+                              .copyWith(fontSize: 15)),
+                      const SizedBox(width: 8),
+                      if (isDue)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppColors.warningLight,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                                color: AppColors.warningAmber
+                                    .withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.access_time,
+                                  size: 11,
+                                  color: AppColors.warningAmber),
+                              const SizedBox(width: 3),
+                              Text('Due',
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.warningAmber)),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: AppTextStyles.cardSubtitle),
+                  const SizedBox(height: 6),
+                  Text(description,
+                      style: AppTextStyles.cardSubtitle
+                          .copyWith(color: AppColors.textMedium)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.access_time,
+                          size: 12, color: AppColors.textLight),
+                      const SizedBox(width: 4),
+                      Text(frequency,
+                          style: AppTextStyles.smallText
+                              .copyWith(color: AppColors.textLight)),
+                      const SizedBox(width: 12),
+                      Text(lastDone,
+                          style: AppTextStyles.smallText
+                              .copyWith(color: AppColors.textLight)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            const Icon(Icons.chevron_right,
+                size: 20, color: AppColors.textMedium),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 // ══════════════════════════════════════════════════════════════════════════════
 // ── MfgScreen — mFG Hirsutism Score ──────────────────────────────────────────
@@ -16,15 +317,15 @@ class _MfgScreenState extends State<MfgScreen> {
   final Map<int, int> _scores = {};
 
   static const _zones = [
-    _Zone('Upper Lip',     'Above the lip, below the nose',      '👄'),
-    _Zone('Chin',          'Chin and jawline area',               '👄'),
-    _Zone('Chest',         'Between and around the breasts',      '🫁'),
-    _Zone('Upper Back',    'Upper back and shoulders',            '🔙'),
-    _Zone('Lower Back',    'Lower back above buttocks',           '⬇️'),
-    _Zone('Upper Abdomen', 'Above the navel',                     '⬆️'),
-    _Zone('Lower Abdomen', 'Below the navel',                     '⬇️'),
-    _Zone('Upper Arm',     'Shoulders to elbows',                 '💪'),
-    _Zone('Thigh',         'Upper inner and outer thighs',        '🦵'),
+    _Zone('Upper Lip', 'Above the lip, below the nose', '👄'),
+    _Zone('Chin', 'Chin and jawline area', '👄'),
+    _Zone('Chest', 'Between and around the breasts', '🫁'),
+    _Zone('Upper Back', 'Upper back and shoulders', '🔙'),
+    _Zone('Lower Back', 'Lower back above buttocks', '⬇️'),
+    _Zone('Upper Abdomen', 'Above the navel', '⬆️'),
+    _Zone('Lower Abdomen', 'Below the navel', '⬇️'),
+    _Zone('Upper Arm', 'Shoulders to elbows', '💪'),
+    _Zone('Thigh', 'Upper inner and outer thighs', '🦵'),
   ];
 
   int get _total => _scores.values.fold(0, (a, b) => a + b);
@@ -79,22 +380,18 @@ class _MfgScreenState extends State<MfgScreen> {
                       5,
                       (s) => Expanded(
                             child: Padding(
-                              padding:
-                                  EdgeInsets.only(right: s < 4 ? 8 : 0),
+                              padding: EdgeInsets.only(right: s < 4 ? 8 : 0),
                               child: GestureDetector(
-                                onTap: () =>
-                                    setModal(() => tempScore = s),
+                                onTap: () => setModal(() => tempScore = s),
                                 child: AnimatedContainer(
-                                  duration:
-                                      const Duration(milliseconds: 150),
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 12),
+                                  duration: const Duration(milliseconds: 150),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 12),
                                   decoration: BoxDecoration(
                                     color: tempScore == s
                                         ? AppColors.primary
                                         : AppColors.surfaceWhite,
-                                    borderRadius:
-                                        BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
                                         color: tempScore == s
                                             ? AppColors.primary
@@ -148,8 +445,8 @@ class _MfgScreenState extends State<MfgScreen> {
         backgroundColor: AppColors.surfaceWhite,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back,
-              size: 20, color: AppColors.textDark),
+          icon:
+              const Icon(Icons.arrow_back, size: 20, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
         titleSpacing: 0,
@@ -162,8 +459,7 @@ class _MfgScreenState extends State<MfgScreen> {
                     fontSize: 17,
                     fontWeight: FontWeight.w700)),
             Text('Modified Ferriman-Gallwey (mFG) Assessment',
-                style: TextStyle(
-                    fontSize: 12, color: AppColors.textMedium)),
+                style: TextStyle(fontSize: 12, color: AppColors.textMedium)),
           ],
         ),
       ),
@@ -177,10 +473,9 @@ class _MfgScreenState extends State<MfgScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(children: [
-            // Running total
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 14),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                   color: AppColors.surfaceWhite,
                   borderRadius: BorderRadius.circular(14),
@@ -229,14 +524,13 @@ class _MfgScreenState extends State<MfgScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            // Info banner
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                   color: AppColors.primary.withOpacity(0.07),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: AppColors.primary.withOpacity(0.15))),
+                  border:
+                      Border.all(color: AppColors.primary.withOpacity(0.15))),
               child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -252,7 +546,6 @@ class _MfgScreenState extends State<MfgScreen> {
                   ]),
             ),
             const SizedBox(height: 12),
-            // Zone list
             ..._zones.asMap().entries.map((e) => Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: GestureDetector(
@@ -263,8 +556,7 @@ class _MfgScreenState extends State<MfgScreen> {
                       decoration: BoxDecoration(
                           color: AppColors.surfaceWhite,
                           borderRadius: BorderRadius.circular(14),
-                          border:
-                              Border.all(color: AppColors.cardBorder)),
+                          border: Border.all(color: AppColors.cardBorder)),
                       child: Row(children: [
                         Container(
                           width: 40,
@@ -295,8 +587,8 @@ class _MfgScreenState extends State<MfgScreen> {
                           decoration: BoxDecoration(
                               color: AppColors.background,
                               shape: BoxShape.circle,
-                              border: Border.all(
-                                  color: AppColors.cardBorder)),
+                              border:
+                                  Border.all(color: AppColors.cardBorder)),
                           child: Center(
                               child: Text('${_scores[e.key] ?? 0}',
                                   style: AppTextStyles.cardTitle
@@ -342,8 +634,8 @@ class _MfgScreenState extends State<MfgScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(children: [
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 14),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                   color: AppColors.surfaceWhite,
                   borderRadius: BorderRadius.circular(14),
@@ -354,7 +646,7 @@ class _MfgScreenState extends State<MfgScreen> {
                   Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('RUNNING TOTAL',
+                        const Text('TOTAL SCORE',
                             style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -401,7 +693,7 @@ class _MfgScreenState extends State<MfgScreen> {
                   border: Border.all(color: AppColors.cardBorder)),
               child: Column(children: [
                 Text('$_total',
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 56,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textDark,
@@ -410,8 +702,8 @@ class _MfgScreenState extends State<MfgScreen> {
                 Text('out of 36', style: AppTextStyles.cardSubtitle),
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   decoration: BoxDecoration(
                       color: _interpretationColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20)),
@@ -428,8 +720,7 @@ class _MfgScreenState extends State<MfgScreen> {
                         Expanded(
                             child: Text(e.value.name,
                                 style: AppTextStyles.cardSubtitle
-                                    .copyWith(
-                                        color: AppColors.textDark))),
+                                    .copyWith(color: AppColors.textDark))),
                         SizedBox(
                           width: 120,
                           child: LinearProgressIndicator(
@@ -465,7 +756,7 @@ class _MfgScreenState extends State<MfgScreen> {
               onPressed: () => setState(() => _showResults = false),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: AppColors.cardBorder),
+                side: const BorderSide(color: AppColors.cardBorder),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
@@ -499,14 +790,13 @@ class _MfgScreenState extends State<MfgScreen> {
   }
 }
 
-// ── Zone model ────────────────────────────────────────────────────────────────
 class _Zone {
   final String name, description, emoji;
   const _Zone(this.name, this.description, this.emoji);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ── Phq4Screen — PHQ-4 Anxiety & Depression Screener ─────────────────────────
+// ── Phq4Screen — PHQ-4 matching screenshots ───────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 class Phq4Screen extends StatefulWidget {
   const Phq4Screen({super.key});
@@ -515,30 +805,31 @@ class Phq4Screen extends StatefulWidget {
 }
 
 class _Phq4ScreenState extends State<Phq4Screen> {
-  // 4 questions, each scored 0–3
   final List<int?> _answers = [null, null, null, null];
   bool _showResults = false;
 
-  static const _questions = [
-    'Feeling nervous, anxious, or on edge',
-    'Not being able to stop or control worrying',
-    'Feeling down, depressed, or hopeless',
-    'Little interest or pleasure in doing things',
+  // GAD-2 questions (anxiety)
+  static const _gad2 = [
+    'In the last week, how often have you felt nervous, anxious, or on edge?',
+    'In the last week, how often have you been unable to stop or control worrying?',
+  ];
+
+  // PHQ-2 questions (depression)
+  static const _phq2 = [
+    'In the last week, how often have you had little interest or pleasure in doing things?',
+    'In the last week, how often have you felt down, depressed, or hopeless?',
   ];
 
   static const _options = [
-    'Not at all',
-    'Several days',
-    'More than half the days',
-    'Nearly every day',
+    '0  —  Not at all',
+    '1  —  Several days',
+    '2  —  More than half the days',
+    '3  —  Nearly every day',
   ];
 
-  int get _total =>
-      _answers.fold(0, (sum, v) => sum + (v ?? 0));
-
+  int get _total => _answers.fold(0, (s, v) => s + (v ?? 0));
   int get _anxietyScore => (_answers[0] ?? 0) + (_answers[1] ?? 0);
   int get _depressionScore => (_answers[2] ?? 0) + (_answers[3] ?? 0);
-
   bool get _complete => _answers.every((a) => a != null);
 
   String get _interpretation {
@@ -554,402 +845,507 @@ class _Phq4ScreenState extends State<Phq4Screen> {
     return AppColors.riskHigh;
   }
 
+  String _subscoreLabel(int score) {
+    if (score <= 1) return 'Normal';
+    if (score <= 2) return 'Mild';
+    return 'Elevated';
+  }
+
+  Color _subscoreColor(int score) {
+    if (score <= 1) return AppColors.riskLow;
+    if (score <= 2) return AppColors.warningAmber;
+    return AppColors.riskHigh;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surfaceWhite,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back,
-              size: 20, color: AppColors.textDark),
-          onPressed: () => Navigator.pop(context),
-        ),
-        titleSpacing: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('Mental Wellbeing',
-                style: TextStyle(
-                    color: AppColors.textDark,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700)),
-            Text('PHQ-4 Anxiety & Depression Screen',
-                style: TextStyle(
-                    fontSize: 12, color: AppColors.textMedium)),
-          ],
-        ),
+      body: Column(
+        children: [
+          // ── Teal header ───────────────────────────────────────────────
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.gradientStart, AppColors.gradientEnd],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 16, 20),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.white, size: 22),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 4),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Mental Wellness',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700)),
+                        Text('PHQ-4 Psychological Assessment',
+                            style: TextStyle(
+                                color: Colors.white70, fontSize: 13)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          Expanded(
+            child: _showResults ? _buildResults() : _buildQuestions(),
+          ),
+        ],
       ),
-      body: _showResults ? _buildResults() : _buildQuestions(),
     );
   }
 
   Widget _buildQuestions() {
-    return Column(children: [
-      Expanded(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Info banner
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.07),
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Info banner
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceLight,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: AppColors.primary.withOpacity(0.15))),
-                child: Row(
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(Icons.info_outline,
                           size: 16, color: AppColors.primary),
                       const SizedBox(width: 8),
                       Expanded(
-                          child: Text(
-                              'Over the last 2 weeks, how often have you been '
-                              'bothered by the following problems?',
-                              style: AppTextStyles.cardSubtitle)),
-                    ]),
-              ),
-              const SizedBox(height: 16),
-
-              // Questions
-              ..._questions.asMap().entries.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 16),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                          color: AppColors.surfaceWhite,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                              color: _answers[e.key] != null
-                                  ? AppColors.primary
-                                  : AppColors.cardBorder,
-                              width:
-                                  _answers[e.key] != null ? 1.5 : 1)),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                  color: _answers[e.key] != null
-                                      ? AppColors.primary
-                                      : AppColors.surfaceLight,
-                                  shape: BoxShape.circle),
-                              child: Center(
-                                  child: Text('${e.key + 1}',
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700,
-                                          color: _answers[e.key] != null
-                                              ? Colors.white
-                                              : AppColors.textMedium))),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                                child: Text(e.value,
-                                    style: AppTextStyles.cardTitle
-                                        .copyWith(fontSize: 14))),
-                          ]),
-                          const SizedBox(height: 14),
-                          ..._options.asMap().entries.map((o) {
-                            final selected = _answers[e.key] == o.key;
-                            return GestureDetector(
-                              onTap: () => setState(
-                                  () => _answers[e.key] = o.key),
-                              child: AnimatedContainer(
-                                duration:
-                                    const Duration(milliseconds: 150),
-                                margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 14, vertical: 12),
-                                decoration: BoxDecoration(
-                                    color: selected
-                                        ? AppColors.primary
-                                            .withOpacity(0.08)
-                                        : AppColors.background,
-                                    borderRadius:
-                                        BorderRadius.circular(10),
-                                    border: Border.all(
-                                        color: selected
-                                            ? AppColors.primary
-                                            : AppColors.cardBorder,
-                                        width: selected ? 1.5 : 1)),
-                                child: Row(children: [
-                                  Container(
-                                    width: 18,
-                                    height: 18,
-                                    decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                            color: selected
-                                                ? AppColors.primary
-                                                : AppColors.cardBorder,
-                                            width: 2),
-                                        color: selected
-                                            ? AppColors.primary
-                                            : Colors.transparent),
-                                    child: selected
-                                        ? const Icon(Icons.check,
-                                            size: 11,
-                                            color: Colors.white)
-                                        : null,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Text(o.value,
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: selected
-                                              ? FontWeight.w600
-                                              : FontWeight.w400,
-                                          color: selected
-                                              ? AppColors.primary
-                                              : AppColors.textDark)),
-                                  const Spacer(),
-                                  Text('+${o.key}',
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: selected
-                                              ? AppColors.primary
-                                              : AppColors.textLight,
-                                          fontWeight: FontWeight.w600)),
-                                ]),
-                              ),
-                            );
-                          }),
-                        ],
+                        child: RichText(
+                          text: TextSpan(
+                            style: AppTextStyles.cardSubtitle,
+                            children: [
+                              const TextSpan(text: 'Over the '),
+                              TextSpan(
+                                  text: 'last week',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textDark)),
+                              const TextSpan(
+                                  text:
+                                      ', how often have you been bothered by the following problems? '
+                                      'Score ≥3 on either subscale = positive screen.'),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
-                  )),
-            ],
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // GAD-2 section
+                _SectionLabel(
+                    label: 'GAD-2 — Anxiety',
+                    color: const Color(0xFF2A7FD4)),
+                const SizedBox(height: 12),
+                ..._gad2.asMap().entries.map((e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _QuestionCard(
+                        question: e.value,
+                        options: _options,
+                        selected: _answers[e.key],
+                        onSelect: (v) =>
+                            setState(() => _answers[e.key] = v),
+                      ),
+                    )),
+
+                const SizedBox(height: 8),
+
+                // PHQ-2 section
+                _SectionLabel(
+                    label: 'PHQ-2 — Depression',
+                    color: const Color(0xFF8B45C8)),
+                const SizedBox(height: 12),
+                ..._phq2.asMap().entries.map((e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _QuestionCard(
+                        question: e.value,
+                        options: _options,
+                        selected: _answers[e.key + 2],
+                        onSelect: (v) =>
+                            setState(() => _answers[e.key + 2] = v),
+                      ),
+                    )),
+              ],
+            ),
           ),
         ),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _complete
-                ? () => setState(() => _showResults = true)
-                : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              disabledBackgroundColor: AppColors.cardBorder,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-            ),
-            child: Text(
-                _complete
-                    ? 'View Results'
-                    : 'Answer all questions to continue',
+
+        // View Results button
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _complete
+                  ? () => setState(() => _showResults = true)
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                disabledBackgroundColor: AppColors.progressBg,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              child: Text(
+                'View Results',
                 style: TextStyle(
                     color: _complete ? Colors.white : AppColors.textLight,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600)),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600),
+              ),
+            ),
           ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 
   Widget _buildResults() {
-    return Column(children: [
-      Expanded(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(children: [
-            // Total score card
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                  color: AppColors.surfaceWhite,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.cardBorder)),
-              child: Column(children: [
-                Text('$_total',
-                    style: TextStyle(
-                        fontSize: 56,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.textDark,
-                        height: 1.0)),
-                const SizedBox(height: 4),
-                Text('out of 12', style: AppTextStyles.cardSubtitle),
-                const SizedBox(height: 12),
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Total score card
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 6),
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(28),
                   decoration: BoxDecoration(
-                      color: _interpretationColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Text(_interpretation,
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: _interpretationColor)),
+                    color: AppColors.surfaceWhite,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      Text('$_total',
+                          style: const TextStyle(
+                              fontSize: 64,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textDark,
+                              height: 1.0)),
+                      const SizedBox(height: 4),
+                      Text('out of 12', style: AppTextStyles.cardSubtitle),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 6),
+                        decoration: BoxDecoration(
+                            color: _interpretationColor.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(20)),
+                        child: Text(_interpretation,
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: _interpretationColor)),
+                      ),
+                    ],
+                  ),
                 ),
-              ]),
-            ),
+                const SizedBox(height: 14),
 
-            const SizedBox(height: 16),
-
-            // Subscores
-            Row(children: [
-              Expanded(
-                  child: _SubScoreCard(
-                      label: 'Anxiety',
+                // Subscores
+                Row(children: [
+                  Expanded(
+                    child: _SubScoreCard(
+                      label: 'GAD-2 Anxiety',
+                      labelColor: const Color(0xFF2A7FD4),
                       score: _anxietyScore,
                       max: 6,
-                      color: AppColors.warningAmber)),
-              const SizedBox(width: 12),
-              Expanded(
-                  child: _SubScoreCard(
-                      label: 'Depression',
+                      statusLabel: _subscoreLabel(_anxietyScore),
+                      statusColor: _subscoreColor(_anxietyScore),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _SubScoreCard(
+                      label: 'PHQ-2 Depression',
+                      labelColor: const Color(0xFF8B45C8),
                       score: _depressionScore,
                       max: 6,
-                      color: AppColors.riskHigh)),
-            ]),
+                      statusLabel: _subscoreLabel(_depressionScore),
+                      statusColor: _subscoreColor(_depressionScore),
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 14),
 
-            const SizedBox(height: 16),
-
-            // Answers summary
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                  color: AppColors.surfaceWhite,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.cardBorder)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Your Responses',
-                      style:
-                          AppTextStyles.cardTitle.copyWith(fontSize: 14)),
-                  const SizedBox(height: 12),
-                  ..._questions.asMap().entries.map((e) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: Row(
-                            crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                            children: [
-                              Expanded(
-                                  child: Text(e.value,
-                                      style: AppTextStyles.cardSubtitle
-                                          .copyWith(
-                                              color:
-                                                  AppColors.textDark))),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3),
-                                decoration: BoxDecoration(
-                                    color: AppColors.primary
-                                        .withOpacity(0.1),
-                                    borderRadius:
-                                        BorderRadius.circular(8)),
-                                child: Text(
-                                    _options[_answers[e.key] ?? 0],
-                                    style: AppTextStyles.smallText
-                                        .copyWith(
-                                            color: AppColors.primary,
-                                            fontWeight:
-                                                FontWeight.w600)),
+                // Severity scale bar
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceWhite,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                        children: const [
+                          Text('Normal',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textMedium)),
+                          Text('Mild',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textMedium)),
+                          Text('Moderate',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textMedium)),
+                          Text('Severe',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.textMedium)),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(6),
+                            child: Container(
+                              height: 10,
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    AppColors.riskLow,
+                                    AppColors.warningAmber,
+                                    AppColors.riskHigh,
+                                    AppColors.riskCritical,
+                                  ],
+                                ),
                               ),
-                            ]),
-                      )),
-                ],
+                            ),
+                          ),
+                          Positioned(
+                            left: (_total / 12) *
+                                (MediaQuery.of(context).size.width -
+                                    64),
+                            top: -2,
+                            child: Container(
+                              width: 14,
+                              height: 14,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: AppColors.textDark, width: 2),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // Action buttons
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Row(children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => setState(() {
+                  _showResults = false;
+                  _answers.fillRange(0, 4, null);
+                }),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: AppColors.cardBorder),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Edit Answers',
+                    style: TextStyle(
+                        color: AppColors.textDark,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15)),
               ),
             ),
-
-            const SizedBox(height: 16),
-
-            // Disclaimer
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                  color: const Color(0xFFF5F5F5),
-                  borderRadius: BorderRadius.circular(10)),
-              child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.info_outline,
-                        size: 14, color: AppColors.textMedium),
-                    const SizedBox(width: 8),
-                    Expanded(
-                        child: Text(
-                            'PHQ-4 is a screening tool only. It does not '
-                            'constitute a clinical diagnosis. Please speak '
-                            'with a healthcare professional if you are '
-                            'concerned about your mental health.',
-                            style: AppTextStyles.smallText)),
-                  ]),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Save & Continue',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15)),
+              ),
             ),
           ]),
         ),
-      ),
-      Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        child: Row(children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => setState(() {
-                _showResults = false;
-                _answers.fillRange(0, 4, null);
-              }),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                side: BorderSide(color: AppColors.cardBorder),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Retake',
-                  style: TextStyle(
-                      color: AppColors.textDark,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15)),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Save & Exit',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15)),
-            ),
-          ),
-        ]),
-      ),
-    ]);
+      ],
+    );
   }
 }
 
-// ── PHQ-4 Sub-score Card ──────────────────────────────────────────────────────
-class _SubScoreCard extends StatelessWidget {
+// ── Section label ─────────────────────────────────────────────────────────────
+class _SectionLabel extends StatelessWidget {
   final String label;
-  final int score, max;
   final Color color;
-  const _SubScoreCard(
+  const _SectionLabel({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) => Text(label,
+      style: TextStyle(
+          fontSize: 14, fontWeight: FontWeight.w700, color: color));
+}
+
+// ── Question card with 2×2 grid options ──────────────────────────────────────
+class _QuestionCard extends StatelessWidget {
+  final String question;
+  final List<String> options;
+  final int? selected;
+  final ValueChanged<int> onSelect;
+
+  const _QuestionCard({
+    required this.question,
+    required this.options,
+    required this.selected,
+    required this.onSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceWhite,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+            color: selected != null
+                ? AppColors.primary.withOpacity(0.3)
+                : AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(question,
+              style: AppTextStyles.cardTitle.copyWith(fontSize: 14)),
+          const SizedBox(height: 14),
+          // 2×2 grid
+          Column(
+            children: [
+              Row(children: [
+                Expanded(child: _OptionTile(label: options[0], value: 0, selected: selected, onTap: onSelect)),
+                const SizedBox(width: 8),
+                Expanded(child: _OptionTile(label: options[1], value: 1, selected: selected, onTap: onSelect)),
+              ]),
+              const SizedBox(height: 8),
+              Row(children: [
+                Expanded(child: _OptionTile(label: options[2], value: 2, selected: selected, onTap: onSelect)),
+                const SizedBox(width: 8),
+                Expanded(child: _OptionTile(label: options[3], value: 3, selected: selected, onTap: onSelect)),
+              ]),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OptionTile extends StatelessWidget {
+  final String label;
+  final int value;
+  final int? selected;
+  final ValueChanged<int> onTap;
+
+  const _OptionTile(
       {required this.label,
-      required this.score,
-      required this.max,
-      required this.color});
+      required this.value,
+      required this.selected,
+      required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = selected == value;
+    return GestureDetector(
+      onTap: () => onTap(value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withOpacity(0.08)
+              : AppColors.background,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+              color:
+                  isSelected ? AppColors.primary : AppColors.cardBorder,
+              width: isSelected ? 1.5 : 1),
+        ),
+        child: Text(label,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight:
+                    isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.textDark)),
+      ),
+    );
+  }
+}
+
+// ── Sub-score card ────────────────────────────────────────────────────────────
+class _SubScoreCard extends StatelessWidget {
+  final String label, statusLabel;
+  final Color labelColor, statusColor;
+  final int score, max;
+
+  const _SubScoreCard({
+    required this.label,
+    required this.labelColor,
+    required this.score,
+    required this.max,
+    required this.statusLabel,
+    required this.statusColor,
+  });
 
   @override
   Widget build(BuildContext context) => Container(
@@ -960,32 +1356,30 @@ class _SubScoreCard extends StatelessWidget {
             border: Border.all(color: AppColors.cardBorder)),
         child: Column(children: [
           Text(label,
-              style: AppTextStyles.cardSubtitle
-                  .copyWith(fontWeight: FontWeight.w600)),
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: labelColor)),
           const SizedBox(height: 8),
           RichText(
               text: TextSpan(children: [
             TextSpan(
                 text: '$score',
-                style: TextStyle(
-                    fontSize: 28,
+                style: const TextStyle(
+                    fontSize: 32,
                     fontWeight: FontWeight.w800,
-                    color: color)),
+                    color: AppColors.textDark)),
             TextSpan(
-                text: '/$max',
+                text: ' / $max',
                 style: const TextStyle(
                     fontSize: 14, color: AppColors.textMedium)),
           ])),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: score / max,
-              minHeight: 5,
-              backgroundColor: AppColors.cardBorder,
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-            ),
-          ),
+          const SizedBox(height: 6),
+          Text(statusLabel,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: statusColor)),
         ]),
       );
 }

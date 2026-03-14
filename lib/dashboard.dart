@@ -143,6 +143,7 @@ class DashboardScreen extends StatelessWidget {
 
                 const SizedBox(height: 10),
 
+                // ── FIXED: now routes to weeklyTools landing screen ────
                 _ActionTile(
                   icon: Icons.assignment_outlined,
                   iconBg: const Color(0xFFE3F2FD),
@@ -150,7 +151,7 @@ class DashboardScreen extends StatelessWidget {
                   title: 'Weekly Tools',
                   subtitle: 'mFG & PHQ-4 due',
                   onTap: () => Navigator.pushNamed(
-                      context, AppRoutes.mfgScreen),
+                      context, AppRoutes.weeklyTools),
                 ),
 
                 const SizedBox(height: 10),

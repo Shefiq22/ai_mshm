@@ -39,4 +39,5 @@ class AppRoutes {
   static const String patientDetail    = '/clinician/patient';
   static const String clinicianPdf     = '/clinician/pdf';
   static const String patientTimeline  = '/clinician/timeline';
+  static const String weeklyTools = '/tools';
 }
