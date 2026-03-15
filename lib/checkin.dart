@@ -18,6 +18,27 @@ class _MorningCheckinState extends State<MorningCheckinScreen> {
   double _fatigue = 0;
   double _pelvicPressure = 0;
 
+  // ── Hyperalgesia Assessment (PSQ-3) ──────────────────────────────────────
+  double _skinSensitivity = 0;
+  double _musclePressurePain = 0;
+  double _bodyTenderness = 0;
+
+  double get _hyperalgesiaIndex =>
+      (_skinSensitivity + _musclePressurePain + _bodyTenderness) / 3;
+
+  String get _hyperalgesiaLabel {
+    if (_hyperalgesiaIndex <= 2) return 'Normal';
+    if (_hyperalgesiaIndex <= 4) return 'Mild';
+    if (_hyperalgesiaIndex <= 6) return 'Moderate';
+    return 'Severe';
+  }
+
+  Color get _hyperalgesiaColor {
+    if (_hyperalgesiaIndex <= 2) return AppColors.riskLow;
+    if (_hyperalgesiaIndex <= 4) return AppColors.warningAmber;
+    return AppColors.riskHigh;
+  }
+
   Color _scoreColor(double v) {
     if (v <= 2) return AppColors.riskLow;
     if (v <= 5) return AppColors.warningAmber;
@@ -90,24 +111,44 @@ class _MorningCheckinState extends State<MorningCheckinScreen> {
                 ]),
               ]),
               const SizedBox(height: 32),
+
+              // ── Fatigue ───────────────────────────────────────────────────
               _CheckinSlider(
                 title: 'Physical Fatigue',
                 subtitle: 'How tired or physically drained do you feel?',
                 value: _fatigue,
+                min: 0, max: 10, divisions: 10,
                 minLabel: 'Energized',
                 maxLabel: 'Exhausted',
                 scoreColor: _scoreColor(_fatigue),
                 onChanged: (v) => setState(() => _fatigue = v),
               ),
               const SizedBox(height: 28),
+
+              // ── Pelvic Pressure ───────────────────────────────────────────
               _CheckinSlider(
                 title: 'Pelvic Pressure',
                 subtitle: 'Any lower abdominal pressure or discomfort?',
                 value: _pelvicPressure,
+                min: 0, max: 10, divisions: 10,
                 minLabel: 'No pressure',
                 maxLabel: 'Intense',
                 scoreColor: _scoreColor(_pelvicPressure),
                 onChanged: (v) => setState(() => _pelvicPressure = v),
+              ),
+              const SizedBox(height: 28),
+
+              // ── Hyperalgesia Assessment Card ──────────────────────────────
+              _HyperalgesiaCard(
+                skinSensitivity: _skinSensitivity,
+                musclePressurePain: _musclePressurePain,
+                bodyTenderness: _bodyTenderness,
+                index: _hyperalgesiaIndex,
+                label: _hyperalgesiaLabel,
+                labelColor: _hyperalgesiaColor,
+                onSkinChanged: (v) => setState(() => _skinSensitivity = v),
+                onMuscleChanged: (v) => setState(() => _musclePressurePain = v),
+                onTendernessChanged: (v) => setState(() => _bodyTenderness = v),
               ),
               const SizedBox(height: 36),
             ]),
@@ -226,6 +267,7 @@ class _AfternoonCheckinState extends State<AfternoonCheckinScreen> {
                 title: 'Physical Fatigue',
                 subtitle: 'How tired or physically drained do you feel?',
                 value: _fatigue,
+                min: 0, max: 10, divisions: 10,
                 minLabel: 'Energized',
                 maxLabel: 'Exhausted',
                 scoreColor: _scoreColor(_fatigue),
@@ -236,6 +278,7 @@ class _AfternoonCheckinState extends State<AfternoonCheckinScreen> {
                 title: 'Pelvic Pressure',
                 subtitle: 'Any lower abdominal pressure or discomfort?',
                 value: _pelvicPressure,
+                min: 0, max: 10, divisions: 10,
                 minLabel: 'No pressure',
                 maxLabel: 'Intense',
                 scoreColor: _scoreColor(_pelvicPressure),
@@ -282,24 +325,16 @@ class EveningCheckinScreen extends StatefulWidget {
 }
 
 class _EveningCheckinState extends State<EveningCheckinScreen> {
-  double _breastSoreness = 0;
-  double _acneSeverity = 0;
-
-  // Breast detail
+  // ── Breast: per-side only (no overall slider) ─────────────────────────────
+  double _breastLeft = 0;
+  double _breastRight = 0;
   String? _mastalgiaSide;
   String? _mastalgiaQuality;
 
-  // Per-breast-side sliders — shown when overall soreness > 0
-  double _breastLeft = 0;
-  double _breastRight = 0;
-
-  // Acne area chips + per-area severity sliders
-  final Set<String> _acneAreas = {};
-  final Map<String, double> _acneAreaSeverity = {
-    'Face': 0,
-    'Chest': 0,
-    'Back': 0,
-  };
+  // ── Acne: per-area 0–3 only (no overall slider) ───────────────────────────
+  double _acneFace = 0;
+  double _acneChest = 0;
+  double _acneBack = 0;
 
   final TextEditingController _bloatingCtrl = TextEditingController();
 
@@ -313,10 +348,22 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
     super.dispose();
   }
 
-  Color _scoreColor(double v) {
-    if (v <= 2) return AppColors.riskLow;
-    if (v <= 5) return AppColors.warningAmber;
+  Color _scoreColor(double v, {double max = 10}) {
+    final ratio = v / max;
+    if (ratio <= 0.3) return AppColors.riskLow;
+    if (ratio <= 0.6) return AppColors.warningAmber;
     return AppColors.riskHigh;
+  }
+
+  // ── Acne level label for 0-3 scale ───────────────────────────────────────
+  String _acneLabel(double v) {
+    switch (v.round()) {
+      case 0: return 'None';
+      case 1: return 'Mild';
+      case 2: return 'Moderate';
+      case 3: return 'Severe';
+      default: return 'None';
+    }
   }
 
   Widget _sectionCard({
@@ -375,111 +422,7 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
     );
   }
 
-  // ── Acne area chip ──────────────────────────────────────────────────────────
-  Widget _acneAreaChip(String area) {
-    final selected = _acneAreas.contains(area);
-    return GestureDetector(
-      onTap: () => setState(() {
-        if (selected) {
-          _acneAreas.remove(area);
-          _acneAreaSeverity[area] = 0;
-        } else {
-          _acneAreas.add(area);
-        }
-      }),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: selected
-              ? AppColors.primary.withOpacity(0.08)
-              : AppColors.surfaceWhite,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: selected ? AppColors.primary : AppColors.cardBorder,
-            width: selected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (selected) ...[
-              Container(
-                width: 7, height: 7,
-                decoration: const BoxDecoration(
-                    color: AppColors.primary, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 6),
-            ],
-            Text(area,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                  color: selected ? AppColors.primary : AppColors.textDark,
-                )),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ── Per-area acne severity slider ───────────────────────────────────────────
-  Widget _areaSlider(String area) {
-    final value = _acneAreaSeverity[area]!;
-    final color = _scoreColor(value);
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Row(children: [
-          Container(
-            width: 7, height: 7,
-            decoration: BoxDecoration(
-                color: AppColors.primary, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 8),
-          Text('$area severity',
-              style: AppTextStyles.cardSubtitle.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textDark)),
-        ]),
-        RichText(
-            text: TextSpan(children: [
-          TextSpan(
-              text: '${value.round()}',
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: color)),
-          const TextSpan(
-              text: '/10',
-              style: TextStyle(
-                  fontSize: 12, color: AppColors.textMedium)),
-        ])),
-      ]),
-      SliderTheme(
-        data: SliderTheme.of(context).copyWith(
-          trackHeight: 4,
-          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
-          overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
-          activeTrackColor: color,
-          inactiveTrackColor: AppColors.cardBorder,
-          thumbColor: color,
-          overlayColor: color.withOpacity(0.12),
-        ),
-        child: Slider(
-          value: value,
-          min: 0,
-          max: 10,
-          divisions: 10,
-          onChanged: (v) => setState(() => _acneAreaSeverity[area] = v),
-        ),
-      ),
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text('None', style: AppTextStyles.smallText),
-        Text('Severe', style: AppTextStyles.smallText),
-      ]),
-    ]);
-  }
-
-  // ── Per-breast-side slider ──────────────────────────────────────────────────
+  // ── Per-breast-side slider (0–10) ─────────────────────────────────────────
   Widget _breastSideSlider(
       String side, double value, ValueChanged<double> onChanged) {
     final color = _scoreColor(value);
@@ -528,6 +471,63 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
     ]);
   }
 
+  // ── Per-area acne slider (0–3) ─────────────────────────────────────────────
+  Widget _acneAreaSlider(
+      String area, double value, ValueChanged<double> onChanged) {
+    final color = _scoreColor(value, max: 3);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Row(children: [
+          Container(
+            width: 7, height: 7,
+            decoration: BoxDecoration(
+                color: AppColors.primary, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Text(area,
+              style: AppTextStyles.cardSubtitle.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textDark)),
+        ]),
+        Row(children: [
+          Text(_acneLabel(value),
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: color)),
+          const SizedBox(width: 6),
+          Text('(${value.round()}/3)',
+              style: const TextStyle(
+                  fontSize: 12, color: AppColors.textMedium)),
+        ]),
+      ]),
+      SliderTheme(
+        data: SliderTheme.of(context).copyWith(
+          trackHeight: 4,
+          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
+          overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+          activeTrackColor: color,
+          inactiveTrackColor: AppColors.cardBorder,
+          thumbColor: color,
+          overlayColor: color.withOpacity(0.12),
+        ),
+        child: Slider(
+          value: value,
+          min: 0,
+          max: 3,
+          divisions: 3,
+          onChanged: onChanged,
+        ),
+      ),
+      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text('None', style: AppTextStyles.smallText),
+        Text('Mild', style: AppTextStyles.smallText),
+        Text('Moderate', style: AppTextStyles.smallText),
+        Text('Severe', style: AppTextStyles.smallText),
+      ]),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -566,8 +566,8 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               // ── Header ────────────────────────────────────────────────────
               Row(children: [
                 Container(
@@ -593,36 +593,23 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
               ]),
               const SizedBox(height: 28),
 
-              // ── Cyclic Breast Soreness overall ────────────────────────────
-              _CheckinSlider(
+              // ── Cyclic Breast Soreness (left & right only) ────────────────
+              _sectionCard(
                 title: 'Cyclic Breast Soreness',
-                subtitle:
-                    'Rate the overall tenderness or pain in your breasts today.',
-                value: _breastSoreness,
-                minLabel: 'No Pain',
-                maxLabel: 'Worst Imaginable Pain',
-                scoreColor: _scoreColor(_breastSoreness),
-                onChanged: (v) => setState(() => _breastSoreness = v),
-              ),
+                subtitle: 'Rate the tenderness or pain for each side (0–10).',
+                children: [
+                  _breastSideSlider('Left', _breastLeft,
+                      (v) => setState(() => _breastLeft = v)),
+                  const SizedBox(height: 16),
+                  _breastSideSlider('Right', _breastRight,
+                      (v) => setState(() => _breastRight = v)),
 
-              // ── Breast details expand when soreness > 0 ───────────────────
-              if (_breastSoreness > 0) ...[
-                const SizedBox(height: 16),
-                _sectionCard(
-                  title: 'Breast Details',
-                  subtitle: 'Rate each side and describe the pain.',
-                  children: [
-                    // Left & right side sliders
-                    _breastSideSlider('Left', _breastLeft,
-                        (v) => setState(() => _breastLeft = v)),
-                    const SizedBox(height: 12),
-                    _breastSideSlider('Right', _breastRight,
-                        (v) => setState(() => _breastRight = v)),
+                  // ── Pain character toggles ─────────────────────────────
+                  if (_breastLeft > 0 || _breastRight > 0) ...[
                     const SizedBox(height: 18),
                     const Divider(color: AppColors.divider),
                     const SizedBox(height: 14),
 
-                    // Location toggle
                     Text('Location',
                         style: AppTextStyles.cardSubtitle.copyWith(
                             color: AppColors.textDark,
@@ -645,7 +632,6 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
                     ]),
                     const SizedBox(height: 16),
 
-                    // Quality toggle
                     Text('Quality',
                         style: AppTextStyles.cardSubtitle.copyWith(
                             color: AppColors.textDark,
@@ -663,8 +649,8 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
                           child: _toggleButton(
                               'Dull',
                               _mastalgiaQuality == 'Dull',
-                              () =>
-                                  setState(() => _mastalgiaQuality = 'Dull'))),
+                              () => setState(
+                                  () => _mastalgiaQuality = 'Dull'))),
                       const SizedBox(width: 8),
                       Expanded(
                           child: _toggleButton(
@@ -674,56 +660,27 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
                                   () => _mastalgiaQuality = 'Pressure'))),
                     ]),
                   ],
-                ),
-              ],
+                ],
+              ),
 
               const SizedBox(height: 24),
 
-              // ── Acne overall severity ─────────────────────────────────────
-              _CheckinSlider(
+              // ── Acne (per area, 0–3 each, no overall slider) ──────────────
+              _sectionCard(
                 title: 'Acne Severity',
                 subtitle:
-                    'Rate the overall visibility or discomfort of any skin breakouts today.',
-                value: _acneSeverity,
-                minLabel: 'None',
-                maxLabel: 'Severe',
-                scoreColor: _scoreColor(_acneSeverity),
-                onChanged: (v) => setState(() => _acneSeverity = v),
+                    'Rate each area from 0 (none) to 3 (severe).',
+                children: [
+                  _acneAreaSlider('Face', _acneFace,
+                      (v) => setState(() => _acneFace = v)),
+                  const SizedBox(height: 16),
+                  _acneAreaSlider('Chest', _acneChest,
+                      (v) => setState(() => _acneChest = v)),
+                  const SizedBox(height: 16),
+                  _acneAreaSlider('Back', _acneBack,
+                      (v) => setState(() => _acneBack = v)),
+                ],
               ),
-
-              // ── Acne distribution + per-area sliders (shown when acne > 0) ─
-              if (_acneSeverity > 0) ...[
-                const SizedBox(height: 16),
-                _sectionCard(
-                  title: 'Acne Distribution',
-                  subtitle:
-                      'Select all affected areas, then rate each one.',
-                  children: [
-                    // Area selection chips
-                    Row(children: [
-                      Expanded(child: _acneAreaChip('Face')),
-                      const SizedBox(width: 8),
-                      Expanded(child: _acneAreaChip('Chest')),
-                      const SizedBox(width: 8),
-                      Expanded(child: _acneAreaChip('Back')),
-                    ]),
-
-                    // Per-area severity sliders — only for selected areas
-                    if (_acneAreas.isNotEmpty) ...[
-                      const SizedBox(height: 20),
-                      const Divider(color: AppColors.divider),
-                      const SizedBox(height: 16),
-                      for (final area in ['Face', 'Chest', 'Back'])
-                        if (_acneAreas.contains(area)) ...[
-                          _areaSlider(area),
-                          if (area != ['Face', 'Chest', 'Back']
-                              .lastWhere((a) => _acneAreas.contains(a)))
-                            const SizedBox(height: 16),
-                        ],
-                    ],
-                  ],
-                ),
-              ],
 
               const SizedBox(height: 24),
 
@@ -827,22 +784,48 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
                     Expanded(child: _SummaryItem(
                         label: 'Fatigue',
                         value: _fatigue,
+                        displayMax: 10,
                         color: _scoreColor(_fatigue))),
                     Expanded(child: _SummaryItem(
                         label: 'Pelvic',
                         value: _pelvicPressure,
+                        displayMax: 10,
                         color: _scoreColor(_pelvicPressure))),
                   ]),
                   const SizedBox(height: 8),
                   Row(children: [
                     Expanded(child: _SummaryItem(
-                        label: 'Breast',
-                        value: _breastSoreness,
-                        color: _scoreColor(_breastSoreness))),
+                        label: 'L.Breast',
+                        value: _breastLeft,
+                        displayMax: 10,
+                        color: _scoreColor(_breastLeft))),
                     Expanded(child: _SummaryItem(
-                        label: 'Acne',
-                        value: _acneSeverity,
-                        color: _scoreColor(_acneSeverity))),
+                        label: 'R.Breast',
+                        value: _breastRight,
+                        displayMax: 10,
+                        color: _scoreColor(_breastRight))),
+                  ]),
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(child: _SummaryItem(
+                        label: 'Acne Face',
+                        value: _acneFace,
+                        displayMax: 3,
+                        color: _scoreColor(_acneFace, max: 3))),
+                    Expanded(child: _SummaryItem(
+                        label: 'Acne Back',
+                        value: _acneBack,
+                        displayMax: 3,
+                        color: _scoreColor(_acneBack, max: 3))),
+                  ]),
+                  const SizedBox(height: 8),
+                  Row(children: [
+                    Expanded(child: _SummaryItem(
+                        label: 'Acne Chest',
+                        value: _acneChest,
+                        displayMax: 3,
+                        color: _scoreColor(_acneChest, max: 3))),
+                    const Expanded(child: SizedBox()),
                   ]),
                 ]),
               ),
@@ -1094,11 +1077,302 @@ class _CompleteView extends StatelessWidget {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// ── Hyperalgesia Assessment Card (PSQ-3) ──────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+class _HyperalgesiaCard extends StatelessWidget {
+  final double skinSensitivity;
+  final double musclePressurePain;
+  final double bodyTenderness;
+  final double index;
+  final String label;
+  final Color labelColor;
+  final ValueChanged<double> onSkinChanged;
+  final ValueChanged<double> onMuscleChanged;
+  final ValueChanged<double> onTendernessChanged;
+
+  const _HyperalgesiaCard({
+    required this.skinSensitivity,
+    required this.musclePressurePain,
+    required this.bodyTenderness,
+    required this.index,
+    required this.label,
+    required this.labelColor,
+    required this.onSkinChanged,
+    required this.onMuscleChanged,
+    required this.onTendernessChanged,
+  });
+
+  Color _sliderColor(double v) {
+    if (v <= 2) return AppColors.riskLow;
+    if (v <= 5) return AppColors.warningAmber;
+    return AppColors.riskHigh;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceWhite,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header row ───────────────────────────────────────────────────
+          Row(
+            children: [
+              Container(
+                width: 36, height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.touch_app_outlined,
+                    color: AppColors.primary, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Hyperalgesia Assessment',
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textDark)),
+                    const SizedBox(height: 2),
+                    const Text('Pain Sensitivity Questionnaire (PSQ-3)',
+                        style: TextStyle(
+                            fontSize: 12, color: AppColors.textMedium)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          // ── Info banner ───────────────────────────────────────────────────
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.primary.withOpacity(0.15)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.info_outline,
+                    size: 14, color: AppColors.primary),
+                const SizedBox(width: 8),
+                const Expanded(
+                  child: Text(
+                    'Rate how painful everyday pressure stimuli feel today. '
+                    'The index is automatically computed from all three scores.',
+                    style: TextStyle(fontSize: 12, color: AppColors.textMedium),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+          const Divider(color: AppColors.divider),
+          const SizedBox(height: 16),
+
+          // ── Q1: Skin Sensitivity ──────────────────────────────────────────
+          _PSQSlider(
+            question: 'Q1 — Skin Sensitivity',
+            description: 'How sensitive is your skin to light touch today?',
+            value: skinSensitivity,
+            color: _sliderColor(skinSensitivity),
+            onChanged: onSkinChanged,
+          ),
+          const SizedBox(height: 20),
+
+          // ── Q2: Muscle Pressure Pain ──────────────────────────────────────
+          _PSQSlider(
+            question: 'Q2 — Muscle Pressure Pain',
+            description: 'Does pressure on your muscles feel painful today?',
+            value: musclePressurePain,
+            color: _sliderColor(musclePressurePain),
+            onChanged: onMuscleChanged,
+          ),
+          const SizedBox(height: 20),
+
+          // ── Q3: Body Tenderness ───────────────────────────────────────────
+          _PSQSlider(
+            question: 'Q3 — Overall Body Tenderness',
+            description: 'How would you rate your overall body tenderness?',
+            value: bodyTenderness,
+            color: _sliderColor(bodyTenderness),
+            onChanged: onTendernessChanged,
+          ),
+
+          const SizedBox(height: 20),
+          const Divider(color: AppColors.divider),
+          const SizedBox(height: 14),
+
+          // ── Computed index ────────────────────────────────────────────────
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: labelColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: labelColor.withOpacity(0.2)),
+            ),
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Hyperalgesia Index',
+                        style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textMedium)),
+                    const SizedBox(height: 4),
+                    RichText(
+                      text: TextSpan(children: [
+                        TextSpan(
+                          text: index.toStringAsFixed(1),
+                          style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: labelColor),
+                        ),
+                        const TextSpan(
+                          text: ' / 10',
+                          style: TextStyle(
+                              fontSize: 13, color: AppColors.textMedium),
+                        ),
+                      ]),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: labelColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(label,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: labelColor)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Single PSQ slider ─────────────────────────────────────────────────────────
+class _PSQSlider extends StatelessWidget {
+  final String question;
+  final String description;
+  final double value;
+  final Color color;
+  final ValueChanged<double> onChanged;
+
+  const _PSQSlider({
+    required this.question,
+    required this.description,
+    required this.value,
+    required this.color,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(question,
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textDark)),
+                  const SizedBox(height: 2),
+                  Text(description,
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textMedium)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 10),
+            RichText(
+              text: TextSpan(children: [
+                TextSpan(
+                  text: '${value.round()}',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      color: color),
+                ),
+                const TextSpan(
+                  text: '/10',
+                  style: TextStyle(
+                      fontSize: 11, color: AppColors.textMedium),
+                ),
+              ]),
+            ),
+          ],
+        ),
+        SliderTheme(
+          data: SliderTheme.of(context).copyWith(
+            trackHeight: 4,
+            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+            activeTrackColor: color,
+            inactiveTrackColor: AppColors.cardBorder,
+            thumbColor: color,
+            overlayColor: color.withOpacity(0.12),
+          ),
+          child: Slider(
+            value: value,
+            min: 0,
+            max: 10,
+            divisions: 10,
+            onChanged: onChanged,
+          ),
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('No pain',
+                style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+            const Text('Severe',
+                style: TextStyle(fontSize: 11, color: AppColors.textLight)),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // ── Shared Slider Widget ──────────────────────────────────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 class _CheckinSlider extends StatelessWidget {
   final String title, subtitle, minLabel, maxLabel;
-  final double value;
+  final double value, min, max;
+  final int divisions;
   final Color scoreColor;
   final ValueChanged<double> onChanged;
 
@@ -1106,6 +1380,9 @@ class _CheckinSlider extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.value,
+    required this.min,
+    required this.max,
+    required this.divisions,
     required this.minLabel,
     required this.maxLabel,
     required this.scoreColor,
@@ -1135,9 +1412,9 @@ class _CheckinSlider extends StatelessWidget {
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
                       color: scoreColor)),
-              const TextSpan(
-                  text: '/10',
-                  style: TextStyle(
+              TextSpan(
+                  text: '/${max.round()}',
+                  style: const TextStyle(
                       fontSize: 13, color: AppColors.textMedium)),
             ])),
           ]),
@@ -1156,9 +1433,9 @@ class _CheckinSlider extends StatelessWidget {
             ),
             child: Slider(
                 value: value,
-                min: 0,
-                max: 10,
-                divisions: 10,
+                min: min,
+                max: max,
+                divisions: divisions,
                 onChanged: onChanged),
           ),
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -1173,9 +1450,13 @@ class _CheckinSlider extends StatelessWidget {
 class _SummaryItem extends StatelessWidget {
   final String label;
   final double value;
+  final int displayMax;
   final Color color;
   const _SummaryItem(
-      {required this.label, required this.value, required this.color});
+      {required this.label,
+      required this.value,
+      required this.displayMax,
+      required this.color});
 
   @override
   Widget build(BuildContext context) => Row(children: [
@@ -1190,9 +1471,9 @@ class _SummaryItem extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                   color: color,
                   fontSize: 14)),
-          const TextSpan(
-              text: '/10',
-              style: TextStyle(
+          TextSpan(
+              text: '/$displayMax',
+              style: const TextStyle(
                   color: AppColors.textMedium, fontSize: 12)),
         ])),
       ]);

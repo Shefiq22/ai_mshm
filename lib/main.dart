@@ -1,3 +1,4 @@
+import 'package:ai_mshm/notification_provider.dart';
 import 'package:flutter/material.dart';
 import 'app_theme.dart';
 import 'routes.dart';
@@ -10,7 +11,7 @@ import 'email_verify.dart';      // EmailVerifyScreen (6-digit OTP)
 import 'onboard.dart';           // OnboardingFlow
 import 'onboarding.dart';        // OnboardingWearable, OnboardingRPPG, OnboardingComplete
 import 'dashboard.dart';         // DashboardScreen
-import 'checkin.dart';           // MorningCheckinScreen, EveningCheckinScreen
+import 'checkin.dart';           // MorningCheckinScreen, AfternoonCheckinScreen, EveningCheckinScreen
 import 'cycle.dart';             // CycleCalendarScreen
 import 'weekly_tools.dart';      // WeeklyToolsScreen, MfgScreen, Phq4Screen
 import 'clinical_screens.dart';  // LabUploadScreen, UltrasoundUploadScreen, ClinicalStatusScreen
@@ -19,9 +20,17 @@ import 'risk_screens.dart';      // RiskScoreScreen, RiskTrendScreen, ShapDetail
 import 'referral_pdf.dart';      // ReferralScreen, ClinicalPdfScreen
 import 'profile.dart';           // ProfileScreen, NotificationSettingsScreen,
                                  // ConnectedDevicesScreen, DataPrivacyScreen
+import 'app_notifications.dart';      // NotificationsScreen
+
+final _notificationsNotifier = NotificationsNotifier();
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    NotificationsProvider(
+      notifier: _notificationsNotifier,
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -56,6 +65,7 @@ class MyApp extends StatelessWidget {
 
         // ── Check-ins ──────────────────────────────────────────────────────
         AppRoutes.morningCheckin:    (_) => const MorningCheckinScreen(),
+        AppRoutes.afternoonCheckin:  (_) => const AfternoonCheckinScreen(),
         AppRoutes.eveningCheckin:    (_) => const EveningCheckinScreen(),
 
         // ── Cycle ──────────────────────────────────────────────────────────
@@ -86,7 +96,7 @@ class MyApp extends StatelessWidget {
         AppRoutes.profile:           (_) => const ProfileScreen(),
 
         // ── Settings ───────────────────────────────────────────────────────
-        AppRoutes.notifications:     (_) => const NotificationSettingsScreen(),
+        AppRoutes.notifications:     (_) => const NotificationsScreen(),
         AppRoutes.privacy:           (_) => const DataPrivacyScreen(),
         AppRoutes.devices:           (_) => const ConnectedDevicesScreen(),
 

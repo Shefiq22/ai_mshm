@@ -726,8 +726,35 @@ class _NotificationSettingsScreenState
 }
 
 // ─────────────────────────────────────────────
-//  CONNECTED DEVICES SCREEN
+//  CONNECTED DEVICES SCREEN — Full sync/unsync
 // ─────────────────────────────────────────────
+
+class _DeviceInfo {
+  final String name;
+  final String subtitle;
+  final Color color;
+  final List<String> dataTags;
+  final IconData icon;
+  bool connected;
+  bool syncing;
+  bool syncDone;
+  String lastSynced;
+  int syncPercent;
+
+  _DeviceInfo({
+    required this.name,
+    required this.subtitle,
+    required this.color,
+    required this.dataTags,
+    required this.icon,
+    this.connected = false,
+    this.syncing = false,
+    this.syncDone = false,
+    this.lastSynced = 'Never',
+    this.syncPercent = 0,
+  });
+}
+
 class ConnectedDevicesScreen extends StatefulWidget {
   const ConnectedDevicesScreen({super.key});
 
@@ -737,63 +764,132 @@ class ConnectedDevicesScreen extends StatefulWidget {
 }
 
 class _ConnectedDevicesScreenState extends State<ConnectedDevicesScreen> {
-  bool _syncing = false;
-  bool _syncDone = false;
-  bool _bgSync = true;
-  String _frequency = 'Every 15 min';
-
-  final List<String> _freqOptions = [
-    'Every 5 min',
-    'Every 15 min',
-    'Every 30 min',
-    'Every hour',
-    'Every 2 hours',
+  final List<_DeviceInfo> _devices = [
+    _DeviceInfo(
+      name: 'Apple Watch',
+      subtitle: 'Apple HealthKit',
+      color: const Color(0xFF1A1A1A),
+      icon: Icons.watch,
+      dataTags: ['HRV', 'Steps', 'Sleep', 'Heart Rate'],
+      connected: true,
+      lastSynced: '2 hours ago',
+      syncPercent: 72,
+    ),
+    _DeviceInfo(
+      name: 'Fitbit',
+      subtitle: 'Fitbit',
+      color: const Color(0xFF00B0B9),
+      icon: Icons.fitness_center,
+      dataTags: ['HRV', 'Steps', 'Sleep'],
+      connected: false,
+      lastSynced: 'Never',
+      syncPercent: 0,
+    ),
+    _DeviceInfo(
+      name: 'Garmin',
+      subtitle: 'Garmin Connect',
+      color: const Color(0xFF006EC7),
+      icon: Icons.directions_run,
+      dataTags: ['HRV', 'Steps', 'GPS'],
+      connected: false,
+      lastSynced: 'Never',
+      syncPercent: 0,
+    ),
+    _DeviceInfo(
+      name: 'Oura Ring',
+      subtitle: 'Oura Health',
+      color: const Color(0xFF5B5B5B),
+      icon: Icons.circle_outlined,
+      dataTags: ['HRV', 'Sleep', 'Readiness'],
+      connected: false,
+      lastSynced: 'Never',
+      syncPercent: 0,
+    ),
+    _DeviceInfo(
+      name: 'WHOOP',
+      subtitle: 'WHOOP Band',
+      color: const Color(0xFF1A1A2E),
+      icon: Icons.sports_gymnastics,
+      dataTags: ['HRV', 'Recovery', 'Strain'],
+      connected: false,
+      lastSynced: 'Never',
+      syncPercent: 0,
+    ),
   ];
 
-  Future<void> _handleSync() async {
-    setState(() { _syncing = true; _syncDone = false; });
+  List<_DeviceInfo> get _connected =>
+      _devices.where((d) => d.connected).toList();
+  List<_DeviceInfo> get _available =>
+      _devices.where((d) => !d.connected).toList();
+
+  // ── Sync a device ─────────────────────────────────────────────────────────
+  Future<void> _syncDevice(_DeviceInfo device) async {
+    setState(() {
+      device.syncing = true;
+      device.syncDone = false;
+    });
     await Future.delayed(const Duration(milliseconds: 1800));
-    setState(() { _syncing = false; _syncDone = true; });
+    if (!mounted) return;
+    setState(() {
+      device.syncing = false;
+      device.syncDone = true;
+      device.lastSynced = 'Just now';
+      device.syncPercent = 85 + _devices.indexOf(device) * 3;
+    });
+    await Future.delayed(const Duration(seconds: 3));
+    if (!mounted) return;
+    setState(() => device.syncDone = false);
   }
 
-  void _showFreqPicker(BuildContext context) {
-    showModalBottomSheet(
+  // ── Connect a device ──────────────────────────────────────────────────────
+  Future<void> _connectDevice(_DeviceInfo device) async {
+    setState(() => device.syncing = true);
+    await Future.delayed(const Duration(milliseconds: 1200));
+    if (!mounted) return;
+    setState(() {
+      device.connected = true;
+      device.syncing = false;
+      device.lastSynced = 'Just now';
+      device.syncPercent = 80;
+    });
+  }
+
+  // ── Disconnect confirmation dialog ────────────────────────────────────────
+  void _confirmDisconnect(_DeviceInfo device) {
+    showDialog(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (_) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40, height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.cardBorder,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 8),
-            ..._freqOptions.map((f) => ListTile(
-              title: Text(f,
-                  style: TextStyle(
-                    fontWeight: f == _frequency ? FontWeight.w700 : FontWeight.w400,
-                    color: f == _frequency ? AppColors.primary : AppColors.textDark,
-                  )),
-              trailing: f == _frequency
-                  ? const Icon(Icons.check, color: AppColors.primary)
-                  : null,
-              tileColor: f == _frequency
-                  ? AppColors.primary.withOpacity(0.08) : null,
-              onTap: () {
-                setState(() => _frequency = f);
-                Navigator.pop(context);
-              },
-            )),
-            const SizedBox(height: 8),
-          ],
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Disconnect ${device.name}?'),
+        content: const Text(
+          'This will stop syncing data from this device. Your existing data will be preserved.',
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel',
+                style: TextStyle(color: AppColors.textMedium)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              setState(() {
+                device.connected = false;
+                device.syncDone = false;
+                device.syncing = false;
+                device.lastSynced = 'Never';
+                device.syncPercent = 0;
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Text('Disconnect',
+                style: TextStyle(color: Colors.white)),
+          ),
+        ],
       ),
     );
   }
@@ -810,348 +906,58 @@ class _ConnectedDevicesScreenState extends State<ConnectedDevicesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Connected Devices', style: AppTextStyles.screenTitle),
-            Text('Manage wearable integrations', style: AppTextStyles.smallText),
+            Text('Manage wearable integrations',
+                style: AppTextStyles.smallText),
           ],
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: Container(
-              width: 32, height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.watch_outlined,
-                  color: AppColors.primary, size: 16),
-            ),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(bottom: 40),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionLabel('Connected Devices (1)'),
-            _ProfileCard(
+            // ── Connected devices section ─────────────────────────────
+            if (_connected.isNotEmpty) ...[
+              _sectionLabel('CONNECTED DEVICES (${_connected.length})'),
+              ..._connected.map((d) => _ConnectedDeviceCard(
+                    device: d,
+                    onSync: () => _syncDevice(d),
+                    onDisconnect: () => _confirmDisconnect(d),
+                  )),
+            ],
+
+            // ── Available integrations ────────────────────────────────
+            _sectionLabel('AVAILABLE INTEGRATIONS'),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceWhite,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.cardBorder),
+              ),
               child: Column(
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                children: _available.asMap().entries.map((entry) {
+                  final i = entry.key;
+                  final d = entry.value;
+                  return Column(
                     children: [
-                      Container(
-                        width: 48, height: 48,
-                        decoration: BoxDecoration(
-                          color: AppColors.textDark,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.watch, color: AppColors.primary, size: 24),
+                      _AvailableDeviceRow(
+                        device: d,
+                        onConnect: () => _connectDevice(d),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: Text('Apple Watch Series 9',
-                                      overflow: TextOverflow.ellipsis,
-                                      style: AppTextStyles.activityTitle
-                                          .copyWith(fontSize: 15)),
-                                ),
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE8F5E9),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        width: 6, height: 6,
-                                        decoration: const BoxDecoration(
-                                          color: Color(0xFF2ECC71),
-                                          shape: BoxShape.circle,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      const Text('Connected',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w700,
-                                            color: Color(0xFF2E7D32),
-                                          )),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 2),
-                            Text('Apple HealthKit', style: AppTextStyles.cardSubtitle),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                const Icon(Icons.access_time_outlined,
-                                    size: 12, color: AppColors.textLight),
-                                const SizedBox(width: 4),
-                                Text('2 hours ago', style: AppTextStyles.smallText),
-                                const SizedBox(width: 12),
-                                const Icon(Icons.trending_up,
-                                    size: 12, color: AppColors.textLight),
-                                const SizedBox(width: 4),
-                                Text('72%', style: AppTextStyles.smallText),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Wrap(
-                              spacing: 6,
-                              runSpacing: 6,
-                              children: ['HRV', 'Steps', 'Sleep', 'Heart Rate']
-                                  .map((tag) => Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary
-                                              .withOpacity(0.1),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                          border: Border.all(
-                                              color: AppColors.primary
-                                                  .withOpacity(0.2)),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Container(
-                                              width: 5, height: 5,
-                                              decoration: const BoxDecoration(
-                                                color: AppColors.primary,
-                                                shape: BoxShape.circle,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(tag,
-                                                style: AppTextStyles.smallText
-                                                    .copyWith(
-                                                        color: AppColors.primary,
-                                                        fontWeight:
-                                                            FontWeight.w600)),
-                                          ],
-                                        ),
-                                      ))
-                                  .toList(),
-                            ),
-                          ],
-                        ),
-                      ),
+                      if (i < _available.length - 1)
+                        const Divider(
+                            height: 1, color: AppColors.divider),
                     ],
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _syncing ? null : _handleSync,
-                          icon: _syncing
-                              ? const SizedBox(
-                                  width: 14, height: 14,
-                                  child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: AppColors.primary))
-                              : const Icon(Icons.sync,
-                                  size: 16, color: AppColors.primary),
-                          label: Text(
-                            _syncing
-                                ? 'Syncing...'
-                                : _syncDone
-                                    ? '✓  Synced!'
-                                    : 'Sync Now',
-                            style: AppTextStyles.inputLabel.copyWith(
-                                color: _syncDone
-                                    ? const Color(0xFF2ECC71)
-                                    : AppColors.textDark),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(0, 44),
-                            side: const BorderSide(color: AppColors.inputBorder),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        width: 44, height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.riskHigh.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: AppColors.riskHigh.withOpacity(0.2)),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.close,
-                              color: AppColors.riskHigh, size: 18),
-                          onPressed: () {},
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+                  );
+                }).toList(),
               ),
             ),
-            _sectionLabel('Available Integrations'),
-            _ProfileCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  _DeviceRow(
-                      name: 'Fitbit',
-                      subtitle: 'Connect your Fitbit device',
-                      color: const Color(0xFF00B0B9)),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _DeviceRow(
-                      name: 'Garmin',
-                      subtitle: 'Connect Garmin Connect',
-                      color: const Color(0xFF006EC7)),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _DeviceRow(
-                      name: 'Oura Ring',
-                      subtitle: 'Connect Oura for sleep & readiness',
-                      color: const Color(0xFF5B5B5B)),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _DeviceRow(
-                      name: 'WHOOP',
-                      subtitle: 'Connect WHOOP band',
-                      color: const Color(0xFF1A1A2E)),
-                ],
-              ),
-            ),
-            _sectionLabel('Sync Settings'),
-            _ProfileCard(
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Background Sync',
-                                  style: AppTextStyles.activityTitle
-                                      .copyWith(fontSize: 14)),
-                              const SizedBox(height: 2),
-                              Text(
-                                  'Automatically sync data in the background',
-                                  style: AppTextStyles.smallText),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () =>
-                              setState(() => _bgSync = !_bgSync),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 5),
-                            decoration: BoxDecoration(
-                              color: _bgSync
-                                  ? AppColors.primary.withOpacity(0.12)
-                                  : AppColors.surfaceLight,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              _bgSync ? 'Enabled' : 'Disabled',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: _bgSync
-                                    ? AppColors.primary
-                                    : AppColors.textLight,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(height: 1, color: AppColors.divider),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 14),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Sync Frequency',
-                                  style: AppTextStyles.activityTitle
-                                      .copyWith(fontSize: 14)),
-                              const SizedBox(height: 2),
-                              Text('How often to sync wearable data',
-                                  style: AppTextStyles.smallText),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _showFreqPicker(context),
-                          child: Row(
-                            children: [
-                              Text(_frequency,
-                                  style: AppTextStyles.activityTitle
-                                      .copyWith(fontSize: 13)),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.keyboard_arrow_down,
-                                  size: 16,
-                                  color: AppColors.textMedium),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.07),
-                  borderRadius: BorderRadius.circular(12),
-                  border:
-                      Border.all(color: AppColors.primary.withOpacity(0.2)),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 18, height: 18, margin: const EdgeInsets.only(top: 1),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.primary, width: 2),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Wearable data helps improve your PCOS risk predictions by providing real-time physiological signals like heart rate variability, sleep quality, and activity levels.',
-                        style: AppTextStyles.smallText,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+
+            // ── Sync settings ─────────────────────────────────────────
+            _sectionLabel('SYNC SETTINGS'),
+            _SyncSettingsCard(),
+
             const SizedBox(height: 24),
           ],
         ),
@@ -1160,9 +966,9 @@ class _ConnectedDevicesScreenState extends State<ConnectedDevicesScreen> {
   }
 
   Widget _sectionLabel(String text) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
         child: Text(
-          text.toUpperCase(),
+          text,
           style: const TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w700,
@@ -1171,6 +977,434 @@ class _ConnectedDevicesScreenState extends State<ConnectedDevicesScreen> {
           ),
         ),
       );
+}
+
+// ── Connected device card ─────────────────────────────────────────────────────
+class _ConnectedDeviceCard extends StatelessWidget {
+  final _DeviceInfo device;
+  final VoidCallback onSync;
+  final VoidCallback onDisconnect;
+
+  const _ConnectedDeviceCard({
+    required this.device,
+    required this.onSync,
+    required this.onDisconnect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Device icon
+                Container(
+                  width: 52,
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: device.color,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(device.icon, color: Colors.white, size: 26),
+                ),
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Name + Connected badge
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(device.name,
+                                style: AppTextStyles.cardTitle
+                                    .copyWith(fontSize: 15),
+                                overflow: TextOverflow.ellipsis),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE8F5E9),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF2ECC71),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Text('Connected',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF2E7D32),
+                                    )),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(device.subtitle,
+                          style: AppTextStyles.cardSubtitle),
+                      const SizedBox(height: 6),
+
+                      // Last synced + sync %
+                      Row(
+                        children: [
+                          const Icon(Icons.access_time_outlined,
+                              size: 12, color: AppColors.textLight),
+                          const SizedBox(width: 4),
+                          Text(device.lastSynced,
+                              style: AppTextStyles.smallText),
+                          const SizedBox(width: 12),
+                          const Icon(Icons.trending_up,
+                              size: 12, color: AppColors.textLight),
+                          const SizedBox(width: 4),
+                          Text('${device.syncPercent}%',
+                              style: AppTextStyles.smallText),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Data tags
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: device.dataTags
+                            .map((tag) => Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                        color: AppColors.primary
+                                            .withOpacity(0.2)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 5,
+                                        height: 5,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.primary,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(tag,
+                                          style: AppTextStyles.smallText
+                                              .copyWith(
+                                                  color: AppColors.primary,
+                                                  fontWeight:
+                                                      FontWeight.w600)),
+                                    ],
+                                  ),
+                                ))
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Sync Now + Disconnect row ─────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+            child: Row(
+              children: [
+                // Sync button
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: device.syncing ? null : onSync,
+                    icon: device.syncing
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.primary))
+                        : Icon(
+                            device.syncDone ? Icons.check : Icons.sync,
+                            size: 16,
+                            color: device.syncDone
+                                ? const Color(0xFF2ECC71)
+                                : AppColors.primary),
+                    label: Text(
+                      device.syncing
+                          ? 'Syncing...'
+                          : device.syncDone
+                              ? '✓  Synced!'
+                              : 'Sync Now',
+                      style: AppTextStyles.inputLabel.copyWith(
+                          color: device.syncDone
+                              ? const Color(0xFF2ECC71)
+                              : AppColors.textDark),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 44),
+                      side: const BorderSide(color: AppColors.inputBorder),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // Disconnect (X) button
+                GestureDetector(
+                  onTap: onDisconnect,
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.riskHigh.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: AppColors.riskHigh.withOpacity(0.2)),
+                    ),
+                    child: const Icon(Icons.close,
+                        color: AppColors.riskHigh, size: 18),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Available device row ──────────────────────────────────────────────────────
+class _AvailableDeviceRow extends StatelessWidget {
+  final _DeviceInfo device;
+  final VoidCallback onConnect;
+
+  const _AvailableDeviceRow({
+    required this.device,
+    required this.onConnect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: device.color.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Center(
+              child: Icon(device.icon, color: device.color, size: 20),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(device.name,
+                    style:
+                        AppTextStyles.activityTitle.copyWith(fontSize: 14)),
+                const SizedBox(height: 2),
+                Text('Connect your ${device.name} device',
+                    style: AppTextStyles.smallText),
+              ],
+            ),
+          ),
+          device.syncing
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.primary))
+              : GestureDetector(
+                  onTap: onConnect,
+                  child: Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add,
+                        color: AppColors.primary, size: 18),
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Sync settings card ────────────────────────────────────────────────────────
+class _SyncSettingsCard extends StatefulWidget {
+  @override
+  State<_SyncSettingsCard> createState() => _SyncSettingsCardState();
+}
+
+class _SyncSettingsCardState extends State<_SyncSettingsCard> {
+  bool _bgSync = true;
+  String _frequency = 'Every 15 min';
+
+  final List<String> _freqOptions = [
+    'Every 5 min',
+    'Every 15 min',
+    'Every 30 min',
+    'Every hour',
+    'Every 2 hours',
+  ];
+
+  void _showFreqPicker() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.cardBorder,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ..._freqOptions.map((f) => ListTile(
+                  title: Text(f,
+                      style: TextStyle(
+                        fontWeight: f == _frequency
+                            ? FontWeight.w700
+                            : FontWeight.w400,
+                        color: f == _frequency
+                            ? AppColors.primary
+                            : AppColors.textDark,
+                      )),
+                  trailing: f == _frequency
+                      ? const Icon(Icons.check, color: AppColors.primary)
+                      : null,
+                  tileColor: f == _frequency
+                      ? AppColors.primary.withOpacity(0.08)
+                      : null,
+                  onTap: () {
+                    setState(() => _frequency = f);
+                    Navigator.pop(context);
+                  },
+                )),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.cardBorder),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Background Sync',
+                          style:
+                              AppTextStyles.activityTitle.copyWith(fontSize: 14)),
+                      const SizedBox(height: 2),
+                      Text('Automatically sync data in the background',
+                          style: AppTextStyles.smallText),
+                    ],
+                  ),
+                ),
+                Switch(
+                  value: _bgSync,
+                  onChanged: (v) => setState(() => _bgSync = v),
+                  activeColor: AppColors.primary,
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, color: AppColors.divider),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Sync Frequency',
+                          style:
+                              AppTextStyles.activityTitle.copyWith(fontSize: 14)),
+                      const SizedBox(height: 2),
+                      Text('How often to sync wearable data',
+                          style: AppTextStyles.smallText),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: _showFreqPicker,
+                  child: Row(
+                    children: [
+                      Text(_frequency,
+                          style:
+                              AppTextStyles.activityTitle.copyWith(fontSize: 13)),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.keyboard_arrow_down,
+                          size: 16, color: AppColors.textMedium),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -1296,8 +1530,7 @@ class _DataPrivacyScreenState extends State<DataPrivacyScreen> {
                         subtitle:
                             'Allow your connected healthcare providers to view your data',
                         value: _clinician,
-                        onChanged: (v) =>
-                            setState(() => _clinician = v),
+                        onChanged: (v) => setState(() => _clinician = v),
                       ),
                       const Divider(height: 1, color: AppColors.divider),
                       _ConsentRow(
@@ -1306,8 +1539,7 @@ class _DataPrivacyScreenState extends State<DataPrivacyScreen> {
                         subtitle:
                             'Contribute to PCOS research (fully anonymized)',
                         value: _research,
-                        onChanged: (v) =>
-                            setState(() => _research = v),
+                        onChanged: (v) => setState(() => _research = v),
                       ),
                       const Divider(height: 1, color: AppColors.divider),
                       _ConsentRow(
@@ -1607,11 +1839,8 @@ class _SettingsRow extends StatelessWidget {
 
 class _TimeRow extends StatelessWidget {
   final IconData icon;
-  final Color iconColor;
-  final Color iconBg;
-  final String label;
-  final String subtitle;
-  final String time;
+  final Color iconColor, iconBg;
+  final String label, subtitle, time;
   final VoidCallback onTap;
   const _TimeRow(
       {required this.icon,
@@ -1631,7 +1860,7 @@ class _TimeRow extends StatelessWidget {
           Container(
             width: 36, height: 36,
             decoration: BoxDecoration(
-              color: iconBg, borderRadius: BorderRadius.circular(10)),
+                color: iconBg, borderRadius: BorderRadius.circular(10)),
             child: Icon(icon, color: iconColor, size: 18),
           ),
           const SizedBox(width: 14),
@@ -1673,8 +1902,7 @@ class _TimeRow extends StatelessWidget {
 
 class _NotifRow extends StatelessWidget {
   final IconData icon;
-  final String label;
-  final String subtitle;
+  final String label, subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
   const _NotifRow(
@@ -1721,73 +1949,10 @@ class _NotifRow extends StatelessWidget {
   }
 }
 
-class _DeviceRow extends StatelessWidget {
-  final String name;
-  final String subtitle;
-  final Color color;
-  const _DeviceRow(
-      {required this.name, required this.subtitle, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Connecting to $name...'),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10)),
-            duration: const Duration(seconds: 2),
-          ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Text(
-                  name[0],
-                  style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16),
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(name,
-                      style: AppTextStyles.activityTitle.copyWith(fontSize: 14)),
-                  const SizedBox(height: 2),
-                  Text(subtitle, style: AppTextStyles.smallText),
-                ],
-              ),
-            ),
-            const Icon(Icons.add, color: AppColors.primary, size: 22),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _DataLayerCard extends StatelessWidget {
   final IconData icon;
   final Color iconBg;
-  final String label;
-  final String subtitle;
+  final String label, subtitle;
   final List<String> tags;
   final bool value;
   final ValueChanged<bool> onChanged;
@@ -1840,8 +2005,7 @@ class _DataLayerCard extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: AppColors.surfaceLight,
                               borderRadius: BorderRadius.circular(20),
-                              border:
-                                  Border.all(color: AppColors.cardBorder),
+                              border: Border.all(color: AppColors.cardBorder),
                             ),
                             child: Text(t, style: AppTextStyles.smallText),
                           ))
@@ -1863,8 +2027,7 @@ class _DataLayerCard extends StatelessWidget {
 
 class _ConsentRow extends StatelessWidget {
   final IconData icon;
-  final String label;
-  final String subtitle;
+  final String label, subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
   const _ConsentRow(
@@ -1914,9 +2077,8 @@ class _ConsentRow extends StatelessWidget {
 class _RightsRow extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
-  final String label;
+  final String label, subtitle;
   final Color? labelColor;
-  final String subtitle;
   final VoidCallback onTap;
   const _RightsRow(
       {required this.icon,

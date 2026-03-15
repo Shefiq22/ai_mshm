@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'app_colors.dart';
 import 'app_textstyles.dart';
 import 'routes.dart';
+import 'app_notifications.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -42,12 +43,11 @@ class DashboardScreen extends StatelessWidget {
                           color: AppColors.textDark)),
                 ]),
                 Row(children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined,
-                        color: AppColors.textDark),
-                    onPressed: () => Navigator.pushNamed(
+                  NotificationBadge(
+                    onTap: () => Navigator.pushNamed(
                         context, AppRoutes.notifications),
                   ),
+                  const SizedBox(width: 4),
                   const SizedBox(width: 4),
                   CircleAvatar(
                     radius: 18,
