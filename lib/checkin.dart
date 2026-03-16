@@ -104,13 +104,13 @@ class _MorningCheckinState extends State<MorningCheckinScreen> {
                 const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Text('How are you feeling?',
+                  Text('Symptom Intensity Logging',
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textDark)),
                   SizedBox(height: 2),
-                  Text('Rate your symptoms this morning',
+                  Text('How are you feeling this morning?',
                       style:
                           TextStyle(fontSize: 13, color: AppColors.textMedium)),
                 ]),
@@ -123,7 +123,6 @@ class _MorningCheckinState extends State<MorningCheckinScreen> {
                 value: _fatigue,
                 min: 0,
                 max: 10,
-                divisions: 10,
                 minLabel: 'Energized',
                 maxLabel: 'Exhausted',
                 scoreColor: _scoreColor(_fatigue),
@@ -137,7 +136,6 @@ class _MorningCheckinState extends State<MorningCheckinScreen> {
                 value: _pelvicPressure,
                 min: 0,
                 max: 10,
-                divisions: 10,
                 minLabel: 'No pressure',
                 maxLabel: 'Intense',
                 scoreColor: _scoreColor(_pelvicPressure),
@@ -271,13 +269,13 @@ class _AfternoonCheckinState extends State<AfternoonCheckinScreen> {
                 const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Text('How are you feeling?',
+                  Text('Symptom Intensity Logging',
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textDark)),
                   SizedBox(height: 2),
-                  Text('Rate your symptoms this afternoon',
+                  Text('How are you feeling this afternoon?',
                       style:
                           TextStyle(fontSize: 13, color: AppColors.textMedium)),
                 ]),
@@ -289,7 +287,6 @@ class _AfternoonCheckinState extends State<AfternoonCheckinScreen> {
                 value: _fatigue,
                 min: 0,
                 max: 10,
-                divisions: 10,
                 minLabel: 'Energized',
                 maxLabel: 'Exhausted',
                 scoreColor: _scoreColor(_fatigue),
@@ -302,7 +299,6 @@ class _AfternoonCheckinState extends State<AfternoonCheckinScreen> {
                 value: _pelvicPressure,
                 min: 0,
                 max: 10,
-                divisions: 10,
                 minLabel: 'No pressure',
                 maxLabel: 'Intense',
                 scoreColor: _scoreColor(_pelvicPressure),
@@ -422,11 +418,35 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
 
   double get _breastPainAvg => (_breastLeft + _breastRight) / 2;
 
+  String get _mastalgiaSeverity {
+    if (_breastPainAvg == 0) return 'None';
+    if (_breastPainAvg <= 3.5) return 'Mild';
+    if (_breastPainAvg <= 7.0) return 'Moderate';
+    return 'Severe';
+  }
+
+  Color get _mastalgiaColor {
+    if (_breastPainAvg == 0) return AppColors.textLight;
+    if (_breastPainAvg <= 3.5) return AppColors.riskLow;
+    if (_breastPainAvg <= 7.0) return AppColors.warningAmber;
+    return AppColors.riskHigh;
+  }
+
+  int get _ndbpWeight {
+    if (_breastPainAvg == 0) return 0;
+    if (_breastPainAvg > 7.0) return 2;
+    return 1;
+  }
+
+  double get _cyclicMastalgiaScore => _breastPainAvg * _ndbpWeight;
+
   Widget _sectionCard({
     required String title,
     required String subtitle,
     required List<Widget> children,
+    Widget? titleWidget,
   }) {
+    final bool hasTitle = title.isNotEmpty || titleWidget != null;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -435,7 +455,9 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
         border: Border.all(color: AppColors.cardBorder),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (title.isNotEmpty)
+        if (titleWidget != null)
+          titleWidget
+        else if (title.isNotEmpty)
           Text(title.toUpperCase(),
               style: const TextStyle(
                 fontSize: 11,
@@ -443,10 +465,10 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
                 color: AppColors.textLight,
                 letterSpacing: 0.8,
               )),
-        if (title.isNotEmpty && subtitle.isNotEmpty) const SizedBox(height: 4),
+        if (hasTitle && subtitle.isNotEmpty) const SizedBox(height: 4),
         if (subtitle.isNotEmpty)
           Text(subtitle, style: AppTextStyles.cardSubtitle),
-        if (title.isNotEmpty || subtitle.isNotEmpty) const SizedBox(height: 14),
+        if (hasTitle || subtitle.isNotEmpty) const SizedBox(height: 14),
         ...children,
       ]),
     );
@@ -489,7 +511,7 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
         RichText(
             text: TextSpan(children: [
           TextSpan(
-              text: '${value.round()}',
+              text: value.toStringAsFixed(1),
               style: TextStyle(
                   fontSize: 18, fontWeight: FontWeight.w800, color: color)),
           const TextSpan(
@@ -508,7 +530,7 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
           overlayColor: color.withOpacity(0.12),
         ),
         child: Slider(
-            value: value, min: 0, max: 10, divisions: 10, onChanged: onChanged),
+            value: value, min: 0, max: 10, onChanged: onChanged),
       ),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text('No pain', style: AppTextStyles.smallText),
@@ -533,8 +555,10 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
               style: AppTextStyles.cardSubtitle.copyWith(
                   fontWeight: FontWeight.w600, color: AppColors.textDark)),
         ]),
-        Text('(${value.round()}/4)',
-            style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
+        Row(children: [
+          Text('(${value.round()}/4)',
+              style: const TextStyle(fontSize: 12, color: AppColors.textMedium)),
+        ]),
       ]),
       const SizedBox(height: 6),
       Text(_acneLabel(value),
@@ -619,7 +643,7 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
                 const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Text('Symptom Intensity Log',
+                  Text('Symptom Intensity Logging',
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -632,60 +656,111 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
               ]),
               const SizedBox(height: 28),
 
-              // ── Cyclic Breast Soreness ────────────────────────────────────
+              // ── Section heading ───────────────────────────────────────────
+              const Text('Breast Soreness',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary)),
+              const SizedBox(height: 4),
+              const Text('',
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textMedium)),
+              const SizedBox(height: 14),
+
+              // ── Cyclic Mastalgia Score card ───────────────────────────────
+              // title is empty so we inject a styled RichText heading manually
               _sectionCard(
-                title: 'Cyclic Breast Soreness',
+                title: '',
                 subtitle: 'Rate the tenderness or pain for each side (0–10).',
+                titleWidget: const Text(
+                  'Cyclic Mastalgia',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary),
+                ),
                 children: [
+
                   _breastSideSlider('Left', _breastLeft,
                       (v) => setState(() => _breastLeft = v)),
                   const SizedBox(height: 16),
                   _breastSideSlider('Right', _breastRight,
                       (v) => setState(() => _breastRight = v)),
+
                   const SizedBox(height: 14),
                   const Divider(color: AppColors.divider),
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: _scoreColor(_breastPainAvg).withOpacity(0.06),
+                      color: _mastalgiaColor.withOpacity(0.06),
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                          color: _scoreColor(_breastPainAvg).withOpacity(0.2)),
+                          color: _mastalgiaColor.withOpacity(0.2)),
                     ),
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                      const Text('Cyclic Breast Soreness',
-                          style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textMedium)),
-                      RichText(
-                          text: TextSpan(children: [
-                        TextSpan(
-                            text: _breastPainAvg.toStringAsFixed(1),
-                            style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: _scoreColor(_breastPainAvg))),
-                        const TextSpan(
-                            text: ' / 10',
-                            style: TextStyle(
-                                fontSize: 12,
-                                color: AppColors.textMedium)),
-                      ])),
-                    ]),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Cyclic Mastalgia Score',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary)),
+                              ],
+                            ),
+                            Row(children: [
+                              RichText(
+                                  text: TextSpan(children: [
+                                TextSpan(
+                                    text: _cyclicMastalgiaScore.toStringAsFixed(1),
+                                    style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w800,
+                                        color: _mastalgiaColor)),
+                                TextSpan(
+                                    text: ' / 20',
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textMedium)),
+                              ])),
+                              const SizedBox(width: 10),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: _mastalgiaColor.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(_mastalgiaSeverity,
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: _mastalgiaColor)),
+                              ),
+                            ]),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
+
                   if (_breastLeft > 0 || _breastRight > 0) ...[
                     const SizedBox(height: 18),
                     const Divider(color: AppColors.divider),
                     const SizedBox(height: 14),
                     Text('Location',
                         style: AppTextStyles.cardSubtitle.copyWith(
-                            color: AppColors.textDark,
-                            fontWeight: FontWeight.w600)),
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
                     Row(children: [
                       Expanded(
@@ -705,8 +780,8 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
                     const SizedBox(height: 16),
                     Text('Quality',
                         style: AppTextStyles.cardSubtitle.copyWith(
-                            color: AppColors.textDark,
-                            fontWeight: FontWeight.w600)),
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700)),
                     const SizedBox(height: 10),
                     Row(children: [
                       Expanded(
@@ -755,16 +830,20 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
                   const SizedBox(height: 16),
                   _acneAreaSlider('Chin', _acneChin,
                       (v) => setState(() => _acneChin = v)),
+
                   const SizedBox(height: 20),
                   const Divider(color: AppColors.divider),
                   const SizedBox(height: 12),
+
                   const _GagsRegionLabel(label: 'CHEST & BACK'),
                   const SizedBox(height: 10),
                   _acneAreaSlider('Chest & Upper Back', _acneChestBack,
                       (v) => setState(() => _acneChestBack = v)),
+
                   const SizedBox(height: 20),
                   const Divider(color: AppColors.divider),
                   const SizedBox(height: 12),
+
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
@@ -819,7 +898,7 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
 
               const SizedBox(height: 24),
 
-              // ── Bloating ──────────────────────────────────────────────────
+              // ── Bloating ─────────────────────────────────────────────────
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -876,7 +955,7 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
 
               const SizedBox(height: 16),
 
-              // ── UnusualBleeding flag card ──────────────────────────────────
+              // ── UnusualBleeding flag card ─────────────────────────────────
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -995,10 +1074,10 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
                   Row(children: [
                     Expanded(
                         child: _SummaryItem(
-                            label: 'Breast Soreness',
-                            value: _breastPainAvg,
-                            displayMax: 10,
-                            color: _scoreColor(_breastPainAvg))),
+                            label: 'Mastalgia Score',
+                            value: _cyclicMastalgiaScore,
+                            displayMax: 20,
+                            color: _mastalgiaColor)),
                     Expanded(
                         child: _SummaryItem(
                             label: 'Acne Score',
@@ -1012,6 +1091,7 @@ class _EveningCheckinState extends State<EveningCheckinScreen> {
             ]),
           ),
         ),
+
         Padding(
           padding: EdgeInsets.fromLTRB(
               20, 8, 20, MediaQuery.of(context).padding.bottom + 16),
@@ -1176,6 +1256,7 @@ class _HrvCaptureScreenState extends State<HrvCaptureScreen>
                 style: AppTextStyles.bodyText,
               ),
               const SizedBox(height: 16),
+
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
@@ -1377,7 +1458,7 @@ class _HyperalgesiaCard extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text('Hyperalgesia Assessment',
+              const Text('Painful Touch / Hyperalgesia',
                   style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -1526,7 +1607,7 @@ class _PSQSlider extends StatelessWidget {
         RichText(
           text: TextSpan(children: [
             TextSpan(
-              text: '${value.round()}',
+              text: value.toStringAsFixed(1),
               style: TextStyle(
                   fontSize: 20, fontWeight: FontWeight.w800, color: color),
             ),
@@ -1548,7 +1629,7 @@ class _PSQSlider extends StatelessWidget {
           overlayColor: color.withOpacity(0.12),
         ),
         child: Slider(
-            value: value, min: 0, max: 10, divisions: 10, onChanged: onChanged),
+            value: value, min: 0, max: 10, onChanged: onChanged),
       ),
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         const Text('No pain',
@@ -1566,7 +1647,7 @@ class _PSQSlider extends StatelessWidget {
 class _CheckinSlider extends StatelessWidget {
   final String title, subtitle, minLabel, maxLabel;
   final double value, min, max;
-  final int divisions;
+  final int? divisions;
   final Color scoreColor;
   final ValueChanged<double> onChanged;
 
@@ -1576,7 +1657,7 @@ class _CheckinSlider extends StatelessWidget {
     required this.value,
     required this.min,
     required this.max,
-    required this.divisions,
+    this.divisions,
     required this.minLabel,
     required this.maxLabel,
     required this.scoreColor,
@@ -1601,7 +1682,9 @@ class _CheckinSlider extends StatelessWidget {
             RichText(
                 text: TextSpan(children: [
               TextSpan(
-                  text: '${value.round()}',
+                  text: divisions == null
+                      ? value.toStringAsFixed(1)
+                      : '${value.round()}',
                   style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
@@ -1674,7 +1757,7 @@ class _SummaryItem extends StatelessWidget {
         RichText(
             text: TextSpan(children: [
           TextSpan(
-              text: '${value.round()}',
+              text: value.toStringAsFixed(1),
               style: TextStyle(
                   fontWeight: FontWeight.w700, color: color, fontSize: 14)),
           TextSpan(

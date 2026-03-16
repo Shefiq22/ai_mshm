@@ -10,12 +10,14 @@ class DashboardScreen extends StatelessWidget {
 
   static int get _hour => DateTime.now().hour;
 
-  static bool get _isMorning => _hour >= 5 && _hour < 12;
-  static bool get _isAfternoon => _hour >= 12 && _hour < 17;
+  // Morning = 5 am–4:59 pm  |  Evening = 5 pm onward
+  // Afternoon slot is intentionally merged into morning.
+  static bool get _isMorning => _hour >= 5 && _hour < 17;
 
   static String get _greeting {
-    if (_isMorning) return 'Good morning';
-    if (_isAfternoon) return 'Good afternoon';
+    final h = _hour;
+    if (h >= 5 && h < 12) return 'Good morning';
+    if (h >= 12 && h < 17) return 'Good afternoon';
     return 'Good evening';
   }
 
@@ -94,7 +96,8 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
 
-                // Time-gated check-in tile
+                // Morning slot covers 5 am–4:59 pm (morning + afternoon).
+                // Evening slot covers 5 pm onward.
                 if (_isMorning)
                   _ActionTile(
                     icon: Icons.wb_sunny_outlined,
@@ -105,17 +108,6 @@ class DashboardScreen extends StatelessWidget {
                     subtitle: 'Rate fatigue & pelvic pressure',
                     onTap: () => Navigator.pushNamed(
                         context, AppRoutes.morningCheckin),
-                  )
-                else if (_isAfternoon)
-                  _ActionTile(
-                    icon: Icons.wb_cloudy_outlined,
-                    iconBg: const Color(0xFFFFF8E1),
-                    iconColor: Colors.amber.shade700,
-                    dot: Colors.amber.shade700,
-                    title: 'Afternoon Check-In',
-                    subtitle: 'Rate fatigue & pelvic pressure',
-                    onTap: () => Navigator.pushNamed(
-                        context, AppRoutes.afternoonCheckin),
                   )
                 else
                   _ActionTile(
@@ -136,14 +128,13 @@ class DashboardScreen extends StatelessWidget {
                   iconBg: const Color(0xFFF3E5F5),
                   iconColor: const Color(0xFF9C27B0),
                   title: 'Period Tracking',
-                  subtitle: 'Log your cycle',
+                  subtitle: 'LengthofCycle · CLV · TotalMensesScore',
                   onTap: () => Navigator.pushNamed(
                       context, AppRoutes.periodLog),
                 ),
 
                 const SizedBox(height: 10),
 
-                // ── FIXED: now routes to weeklyTools landing screen ────
                 _ActionTile(
                   icon: Icons.assignment_outlined,
                   iconBg: const Color(0xFFE3F2FD),

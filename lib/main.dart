@@ -11,9 +11,10 @@ import 'email_verify.dart';      // EmailVerifyScreen (6-digit OTP)
 import 'onboard.dart';           // OnboardingFlow
 import 'onboarding.dart';        // OnboardingWearable, OnboardingRPPG, OnboardingComplete
 import 'dashboard.dart';         // DashboardScreen
-import 'checkin.dart';           // MorningCheckinScreen, AfternoonCheckinScreen, EveningCheckinScreen
-import 'cycle.dart';             // CycleCalendarScreen, PeriodLogScreen ← moved from risk_screens
-import 'weekly_tools.dart';      // WeeklyToolsScreen, MfgScreen, Phq4Screen
+import 'checkin.dart';           // MorningCheckinScreen, EveningCheckinScreen
+import 'cycle.dart';             // CycleCalendarScreen, PeriodLogScreen
+import 'weekly_tools.dart';      // WeeklyToolsScreen, MfgScreen, Phq4Screen,
+                                 // AffectGridScreen, CognitiveLoadScreen, SleepSatisfactionScreen
 import 'clinical_screens.dart';  // LabUploadScreen, UltrasoundUploadScreen, ClinicalStatusScreen
 import 'risk_screens.dart';      // RiskScoreScreen, RiskTrendScreen, ShapDetailScreen, TriageNoLabsScreen
 import 'referral_pdf.dart';      // ReferralScreen, ClinicalPdfScreen
@@ -62,9 +63,8 @@ class MyApp extends StatelessWidget {
         // ── Dashboard ──────────────────────────────────────────────────────
         AppRoutes.dashboard:         (_) => const DashboardScreen(),
 
-        // ── Check-ins ──────────────────────────────────────────────────────
+        // ── Check-ins (afternoon removed — morning covers 5 am–4:59 pm) ───
         AppRoutes.morningCheckin:    (_) => const MorningCheckinScreen(),
-        AppRoutes.afternoonCheckin:  (_) => const AfternoonCheckinScreen(),
         AppRoutes.eveningCheckin:    (_) => const EveningCheckinScreen(),
 
         // ── Cycle ──────────────────────────────────────────────────────────
@@ -72,9 +72,12 @@ class MyApp extends StatelessWidget {
         AppRoutes.cycleCalendar:     (_) => const CycleCalendarScreen(),
 
         // ── Weekly Tools ───────────────────────────────────────────────────
-        AppRoutes.weeklyTools:       (_) => const WeeklyToolsScreen(),
-        AppRoutes.mfgScreen:         (_) => const MfgScreen(),
-        AppRoutes.phq4Screen:        (_) => const Phq4Screen(),
+        AppRoutes.weeklyTools:            (_) => const WeeklyToolsScreen(),
+        AppRoutes.mfgScreen:              (_) => const MfgScreen(),
+        AppRoutes.phq4Screen:             (_) => const Phq4Screen(),
+        AppRoutes.affectGridScreen:       (_) => const AffectGridScreen(),
+        AppRoutes.cognitiveLoadScreen:    (_) => const CognitiveLoadScreen(),
+        AppRoutes.sleepSatisfactionScreen:(_) => const SleepSatisfactionScreen(),
 
         // ── Clinical ───────────────────────────────────────────────────────
         AppRoutes.labUpload:         (_) => const LabUploadScreen(),
