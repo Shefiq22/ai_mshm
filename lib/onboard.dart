@@ -33,11 +33,13 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   final _cycleLengthController = TextEditingController();
   final _periodsPerYearController = TextEditingController();
   String? _cycleRegularity; // 'Regular' | 'Irregular'
+  // CycleWithPeakorNot → anovulatory_rate
+  bool? _cycleWithPeak; // true = peak (ovulatory), false = no peak (anovulatory)
 
   // Step 5 – Wearable
   String? _selectedWearable;
 
-  // Step 6 – rPPG states: idle | holding | capturing | success
+  // Step 6 – rPPG
   String _rppgState = 'idle';
   int _captureSeconds = 0;
   Timer? _captureTimer;
@@ -67,7 +69,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     if (_step < _totalSteps - 1) {
       setState(() => _step++);
     } else {
-      // After step 6 complete → show completion screen
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const _CompletionScreen()),
@@ -81,7 +82,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
 
   void _startRppgCapture() {
     setState(() => _rppgState = 'holding');
-    // After 2s holding still → start capturing
     Future.delayed(const Duration(seconds: 2), () {
       if (!mounted) return;
       setState(() {
@@ -95,7 +95,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         }
         setState(() => _captureSeconds++);
         if (_captureSeconds >= 5) {
-          // Demo: 5s instead of 120s
           t.cancel();
           setState(() => _rppgState = 'success');
         }
@@ -154,8 +153,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             value: _progress,
             minHeight: 6,
             backgroundColor: AppColors.cardBorder,
-            valueColor:
-                AlwaysStoppedAnimation<Color>(AppColors.primary),
+            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
           ),
         ),
       ],
@@ -197,12 +195,14 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           child: Icon(icon, color: Colors.white, size: 22),
         ),
         const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: AppTextStyles.screenTitle),
-            Text(subtitle, style: AppTextStyles.screenSubtitle),
-          ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AppTextStyles.screenTitle),
+              Text(subtitle, style: AppTextStyles.screenSubtitle),
+            ],
+          ),
         ),
       ],
     );
@@ -220,7 +220,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14)),
-              side: BorderSide(color: AppColors.cardBorder),
+              side: const BorderSide(color: AppColors.cardBorder),
               foregroundColor: AppColors.textDark,
             ),
           ),
@@ -236,7 +236,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     );
   }
 
-  // ── Step 1: Personal Info ───────────────────────────────────────────────────
+  // ── Step 1: Personal Info ──────────────────────────────────────────────────
   Widget _buildPersonalInfo() {
     return SingleChildScrollView(
       child: Column(
@@ -279,11 +279,9 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     return Column(
       children: [
         GestureDetector(
-          onTap: () =>
-              setState(() => _ethnicityOpen = !_ethnicityOpen),
+          onTap: () => setState(() => _ethnicityOpen = !_ethnicityOpen),
           child: Container(
-            padding: const EdgeInsets.symmetric(
-                horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               color: AppColors.surfaceLight,
               borderRadius: BorderRadius.circular(12),
@@ -298,7 +296,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                       ? AppTextStyles.inputText
                       : AppTextStyles.inputHint,
                 ),
-                Icon(Icons.keyboard_arrow_down,
+                const Icon(Icons.keyboard_arrow_down,
                     color: AppColors.textMedium),
               ],
             ),
@@ -331,18 +329,14 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
-                      color: selected
-                          ? AppColors.primary
-                          : Colors.transparent,
+                      color: selected ? AppColors.primary : Colors.transparent,
                       borderRadius: BorderRadius.circular(11),
                     ),
                     child: Text(
                       e,
                       style: TextStyle(
                         fontSize: 14,
-                        color: selected
-                            ? Colors.white
-                            : AppColors.textDark,
+                        color: selected ? Colors.white : AppColors.textDark,
                       ),
                     ),
                   ),
@@ -354,7 +348,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     );
   }
 
-  // ── Step 2: Physical Measurements (with live BMI) ──────────────────────────
+  // ── Step 2: Physical Measurements ─────────────────────────────────────────
   Widget _buildPhysicalMeasurements() {
     final h = double.tryParse(_heightController.text);
     final w = double.tryParse(_weightController.text);
@@ -405,8 +399,8 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Computed BMI',
-                    style: AppTextStyles.cardSubtitle.copyWith(
-                      color: AppColors.textMedium, fontSize: 13)),
+                    style: AppTextStyles.cardSubtitle
+                        .copyWith(color: AppColors.textMedium, fontSize: 13)),
                 const SizedBox(height: 4),
                 Text(
                   bmi.toStringAsFixed(1),
@@ -433,7 +427,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     return AppColors.riskHigh;
   }
 
-  // ── Step 3: Skin Changes ────────────────────────────────────────────────────
+  // ── Step 3: Skin Changes ───────────────────────────────────────────────────
   Widget _buildSkinChanges() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -451,11 +445,11 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
         const SizedBox(height: 24),
         Row(
           children: [
-            _buildYesNoCard('Yes', _skinChanges == true,
-                () => setState(() => _skinChanges = true)),
+            _buildYesNoCard(
+                'Yes', _skinChanges == true, () => setState(() => _skinChanges = true)),
             const SizedBox(width: 12),
-            _buildYesNoCard('No', _skinChanges == false,
-                () => setState(() => _skinChanges = false)),
+            _buildYesNoCard(
+                'No', _skinChanges == false, () => setState(() => _skinChanges = false)),
           ],
         ),
         const SizedBox(height: 24),
@@ -464,8 +458,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     );
   }
 
-  Widget _buildYesNoCard(
-      String label, bool selected, VoidCallback onTap) {
+  Widget _buildYesNoCard(String label, bool selected, VoidCallback onTap) {
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
@@ -478,8 +471,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                 : AppColors.surfaceLight,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color:
-                  selected ? AppColors.primary : AppColors.cardBorder,
+              color: selected ? AppColors.primary : AppColors.cardBorder,
               width: selected ? 1.5 : 1,
             ),
           ),
@@ -489,9 +481,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: selected
-                    ? AppColors.primary
-                    : AppColors.textDark,
+                color: selected ? AppColors.primary : AppColors.textDark,
               ),
             ),
           ),
@@ -500,7 +490,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     );
   }
 
-  // ── Step 4: Menstrual History ───────────────────────────────────────────────
+  // ── Step 4: Menstrual History ─────────────────────────────────────────────
   Widget _buildMenstrualHistory() {
     return SingleChildScrollView(
       child: Column(
@@ -513,8 +503,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           ),
           const SizedBox(height: 24),
 
-          Text('Typical cycle length (days)',
-              style: AppTextStyles.inputLabel),
+          Text('Typical cycle length (days)', style: AppTextStyles.inputLabel),
           const SizedBox(height: 8),
           TextField(
             controller: _cycleLengthController,
@@ -524,8 +513,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           ),
 
           const SizedBox(height: 18),
-          Text('Periods per year (approx.)',
-              style: AppTextStyles.inputLabel),
+          Text('Periods per year (approx.)', style: AppTextStyles.inputLabel),
           const SizedBox(height: 8),
           TextField(
             controller: _periodsPerYearController,
@@ -534,15 +522,91 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             decoration: const InputDecoration(hintText: 'e.g. 12'),
           ),
 
-          const SizedBox(height: 18),
-          Text('Cycle regularity', style: AppTextStyles.inputLabel),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              _buildRegularityCard('Regular'),
-              const SizedBox(width: 12),
-              _buildRegularityCard('Irregular'),
-            ],
+          const SizedBox(height: 20),
+
+          // ── CycleWithPeakorNot → cycle regularity ─────────────────────
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: _cycleRegularity != null
+                  ? AppColors.primary.withOpacity(0.04)
+                  : AppColors.surfaceWhite,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: _cycleRegularity != null
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.cardBorder,
+                width: _cycleRegularity != null ? 1.5 : 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Heading: CycleWithPeakorNot
+                Row(children: [
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF9C27B0).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.stars_outlined,
+                        color: Color(0xFF9C27B0), size: 16),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // ML variable name as heading
+                        const Text('CycleWithPeakorNot',
+                            style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textDark)),
+                        const SizedBox(height: 1),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF9C27B0).withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text('anovulatory_rate',
+                              style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF9C27B0))),
+                        ),
+                      ],
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 14),
+
+                // Subheading: Cycle regularity
+                const Text('Cycle regularity',
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textMedium)),
+                const SizedBox(height: 4),
+
+                // Question
+                const Text('Are your periods regular or irregular?',
+                    style: TextStyle(
+                        fontSize: 14, color: AppColors.textMedium)),
+                const SizedBox(height: 12),
+
+                // Options
+                Row(children: [
+                  _buildRegularityCard('Regular'),
+                  const SizedBox(width: 12),
+                  _buildRegularityCard('Irregular'),
+                ]),
+              ],
+            ),
           ),
 
           const SizedBox(height: 28),
@@ -566,8 +630,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                 : AppColors.surfaceWhite,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color:
-                  selected ? AppColors.primary : AppColors.cardBorder,
+              color: selected ? AppColors.primary : AppColors.cardBorder,
               width: selected ? 1.5 : 1,
             ),
           ),
@@ -577,9 +640,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: selected
-                    ? AppColors.primary
-                    : AppColors.textDark,
+                color: selected ? AppColors.primary : AppColors.textDark,
               ),
             ),
           ),
@@ -588,7 +649,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
     );
   }
 
-  // ── Step 5: Wearable Setup ──────────────────────────────────────────────────
+  // ── Step 5: Wearable Setup ─────────────────────────────────────────────────
   Widget _buildWearableSetup() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -614,36 +675,31 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   Widget _buildWearableRow(Map<String, dynamic> w) {
     final selected = _selectedWearable == w['label'];
     return GestureDetector(
-      onTap: () =>
-          setState(() => _selectedWearable = w['label'] as String),
+      onTap: () => setState(() => _selectedWearable = w['label'] as String),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 12),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         decoration: BoxDecoration(
           color: AppColors.surfaceLight,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color:
-                selected ? AppColors.primary : AppColors.cardBorder,
+            color: selected ? AppColors.primary : AppColors.cardBorder,
             width: selected ? 1.5 : 1,
           ),
         ),
         child: Row(
           children: [
-            Icon(w['icon'] as IconData,
-                color: AppColors.textMedium, size: 24),
+            Icon(w['icon'] as IconData, color: AppColors.textMedium, size: 24),
             const SizedBox(width: 14),
-            Text(w['label'] as String,
-                style: AppTextStyles.inputText),
+            Text(w['label'] as String, style: AppTextStyles.inputText),
           ],
         ),
       ),
     );
   }
 
-  // ── Step 6: rPPG Baseline ───────────────────────────────────────────────────
+  // ── Step 6: rPPG Baseline ──────────────────────────────────────────────────
   Widget _buildRppgBaseline() {
     return SingleChildScrollView(
       child: Column(
@@ -660,8 +716,6 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             style: AppTextStyles.screenSubtitle,
           ),
           const SizedBox(height: 20),
-
-          // Camera preview box
           Container(
             width: double.infinity,
             height: 240,
@@ -671,10 +725,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
             ),
             child: _buildCameraPreviewContent(),
           ),
-
           const SizedBox(height: 20),
-
-          // State-dependent bottom section
           if (_rppgState == 'idle') ...[
             PrimaryButton(
               label: 'Start Baseline Capture',
@@ -696,8 +747,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               color: AppColors.primary,
               bgColor: AppColors.primary.withOpacity(0.08),
               icon: Icons.favorite,
-              message:
-                  'Capturing… ${_captureSeconds}s / 5s (demo)',
+              message: 'Capturing… ${_captureSeconds}s / 5s (demo)',
             ),
             const SizedBox(height: 12),
             _buildNavButtons(),
@@ -709,10 +759,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               message: 'Capture successful! Baseline saved.',
             ),
             const SizedBox(height: 20),
-            PrimaryButton(
-              label: 'Continue →',
-              onPressed: _next,
-            ),
+            PrimaryButton(label: 'Continue →', onPressed: _next),
           ],
         ],
       ),
@@ -724,23 +771,20 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Face scan icon using nested arcs
           SizedBox(
             width: 60,
             height: 60,
             child: CustomPaint(painter: _FaceScanPainter()),
           ),
           const SizedBox(height: 10),
-          Text('Camera preview',
-              style: AppTextStyles.cardSubtitle),
+          Text('Camera preview', style: AppTextStyles.cardSubtitle),
         ],
       );
     } else if (_rppgState == 'holding') {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.face_outlined,
-              size: 48, color: Color(0xFFFF9800)),
+          const Icon(Icons.face_outlined, size: 48, color: Color(0xFFFF9800)),
           const SizedBox(height: 8),
           Text('Hold still…',
               style: AppTextStyles.cardTitle
@@ -751,14 +795,11 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.favorite,
-              size: 48, color: AppColors.primary),
+          const Icon(Icons.favorite, size: 48, color: AppColors.primary),
           const SizedBox(height: 8),
           Text('Capturing HRV data…',
-              style: AppTextStyles.cardTitle
-                  .copyWith(color: AppColors.primary)),
+              style: AppTextStyles.cardTitle.copyWith(color: AppColors.primary)),
           const SizedBox(height: 6),
-          // Mini progress bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: ClipRRect(
@@ -768,14 +809,13 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
                 minHeight: 6,
                 backgroundColor: AppColors.cardBorder,
                 valueColor:
-                    AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    const AlwaysStoppedAnimation<Color>(AppColors.primary),
               ),
             ),
           ),
         ],
       );
     } else {
-      // success
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -786,13 +826,11 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
               color: AppColors.riskLow.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.check_circle,
-                size: 36, color: AppColors.riskLow),
+            child: Icon(Icons.check_circle, size: 36, color: AppColors.riskLow),
           ),
           const SizedBox(height: 10),
           Text('Baseline captured',
-              style: AppTextStyles.cardTitle
-                  .copyWith(color: AppColors.riskLow)),
+              style: AppTextStyles.cardTitle.copyWith(color: AppColors.riskLow)),
         ],
       );
     }
@@ -816,13 +854,11 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              message,
-              style: AppTextStyles.smallText.copyWith(
-                color: color,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: Text(message,
+                style: AppTextStyles.smallText.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                )),
           ),
         ],
       ),
@@ -830,7 +866,7 @@ class _OnboardingFlowState extends State<OnboardingFlow> {
   }
 }
 
-// ── Face scan icon painter ────────────────────────────────────────────────────
+// ── Face scan icon painter ─────────────────────────────────────────────────────
 class _FaceScanPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
@@ -842,32 +878,24 @@ class _FaceScanPainter extends CustomPainter {
 
     final w = size.width;
     final h = size.height;
-    final r = 8.0;
+    const r = 8.0;
 
-    // Top-left corner
     canvas.drawLine(Offset(0, r), Offset(0, 0), paint);
     canvas.drawLine(Offset(0, 0), Offset(r, 0), paint);
-    // Top-right corner
     canvas.drawLine(Offset(w - r, 0), Offset(w, 0), paint);
     canvas.drawLine(Offset(w, 0), Offset(w, r), paint);
-    // Bottom-left corner
     canvas.drawLine(Offset(0, h - r), Offset(0, h), paint);
     canvas.drawLine(Offset(0, h), Offset(r, h), paint);
-    // Bottom-right corner
     canvas.drawLine(Offset(w - r, h), Offset(w, h), paint);
     canvas.drawLine(Offset(w, h), Offset(w, h - r), paint);
 
-    // Smiley placeholder
     final center = Offset(w / 2, h / 2 + 4);
     canvas.drawArc(
       Rect.fromCenter(center: center, width: 24, height: 16),
-      0.2,
-      2.7,
-      false,
-      paint,
+      0.2, 2.7, false, paint,
     );
-    // Eyes
-    canvas.drawCircle(Offset(w / 2 - 8, h / 2 - 4), 2, paint..style = PaintingStyle.fill);
+    canvas.drawCircle(Offset(w / 2 - 8, h / 2 - 4), 2,
+        paint..style = PaintingStyle.fill);
     canvas.drawCircle(Offset(w / 2 + 8, h / 2 - 4), 2, paint);
   }
 
@@ -875,7 +903,7 @@ class _FaceScanPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter old) => false;
 }
 
-// ── Completion Screen ─────────────────────────────────────────────────────────
+// ── Completion Screen ──────────────────────────────────────────────────────────
 class _CompletionScreen extends StatelessWidget {
   const _CompletionScreen();
 
@@ -889,20 +917,14 @@ class _CompletionScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Sparkle decoration
               Align(
                 alignment: const Alignment(0.6, 0),
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Icon(
-                    Icons.auto_awesome,
-                    color: Colors.amber.shade600,
-                    size: 22,
-                  ),
+                  child: Icon(Icons.auto_awesome,
+                      color: Colors.amber.shade600, size: 22),
                 ),
               ),
-
-              // Check circle
               Container(
                 width: 88,
                 height: 88,
@@ -910,44 +932,28 @@ class _CompletionScreen extends StatelessWidget {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF26A69A),
-                      Color(0xFF00796B),
-                    ],
+                    colors: [Color(0xFF26A69A), Color(0xFF00796B)],
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check_circle_outline,
-                  color: Colors.white,
-                  size: 46,
-                ),
+                child: const Icon(Icons.check_circle_outline,
+                    color: Colors.white, size: 46),
               ),
-
               const SizedBox(height: 28),
-
               Text(
                 "You're all set!",
-                style: AppTextStyles.screenTitle.copyWith(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                ),
+                style: AppTextStyles.screenTitle
+                    .copyWith(fontSize: 24, fontWeight: FontWeight.w800),
                 textAlign: TextAlign.center,
               ),
-
               const SizedBox(height: 14),
-
               Text(
                 'Your baseline has been saved. Your AI-powered metabolic health monitoring begins now. Complete daily check-ins for the most accurate risk assessment.',
-                style: AppTextStyles.screenSubtitle.copyWith(
-                  fontSize: 15,
-                  height: 1.6,
-                ),
+                style: AppTextStyles.screenSubtitle
+                    .copyWith(fontSize: 15, height: 1.6),
                 textAlign: TextAlign.center,
               ),
-
               const SizedBox(height: 32),
-
               SizedBox(
                 width: double.infinity,
                 child: PrimaryButton(
@@ -956,9 +962,7 @@ class _CompletionScreen extends StatelessWidget {
                       context, AppRoutes.dashboard),
                 ),
               ),
-
               const SizedBox(height: 16),
-
               Text(
                 'Your first morning check-in will be available tomorrow at 8 AM',
                 style: AppTextStyles.smallText,

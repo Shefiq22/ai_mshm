@@ -44,7 +44,7 @@ class WeeklyToolsScreen extends StatelessWidget {
                                 color: Colors.white,
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700)),
-                        Text('Clinical assessments due this week',
+                        Text('Complete your weekly health check-ins',
                             style: TextStyle(
                                 color: Colors.white70, fontSize: 13)),
                       ],
@@ -73,13 +73,13 @@ class WeeklyToolsScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Weekly Clinical Assessments',
+                        Text('Your Weekly Check-ins',
                             style: AppTextStyles.cardTitle
                                 .copyWith(fontSize: 15)),
                         const SizedBox(height: 6),
                         Text(
-                          'Complete both assessments once per week to track your symptoms over time. '
-                          'Your responses help build a longitudinal picture for accurate PCOS risk scoring.',
+                          'Complete all five check-ins once a week. Each one only takes a minute '
+                          'and helps us track how you are feeling over time.',
                           style: AppTextStyles.cardSubtitle,
                         ),
                       ],
@@ -91,10 +91,10 @@ class WeeklyToolsScreen extends StatelessWidget {
                   _AssessmentCard(
                     icon: Icons.content_cut_outlined,
                     iconBg: const Color(0xFF2AAFAA),
-                    title: 'Hirsutism Score',
-                    subtitle: 'Modified Ferriman-Gallwey (mFG)',
+                    title: 'Hair Growth Check',
+                    subtitle: 'Rate hair growth across different areas',
                     description:
-                        'Quantify hair growth patterns across 8 body zones to assess hyperandrogenism.',
+                        'Score hair growth on 9 areas of your body. This helps us track changes linked to your hormonal health.',
                     frequency: 'Weekly',
                     lastDone: 'Last: 7 days ago',
                     isDue: true,
@@ -108,18 +108,66 @@ class WeeklyToolsScreen extends StatelessWidget {
                     icon: Icons.psychology_outlined,
                     iconBg: const Color(0xFF2AAFAA),
                     title: 'Mental Wellness',
-                    subtitle: 'PHQ-4 Assessment',
+                    subtitle: 'How have you been feeling emotionally?',
                     description:
-                        'Ultra-brief validated screening for anxiety (GAD-2) and depression (PHQ-2).',
+                        'Answer 4 quick questions about your mood and anxiety over the past week.',
                     frequency: 'Weekly',
                     lastDone: 'Last: 7 days ago',
                     isDue: true,
                     onTap: () =>
                         Navigator.pushNamed(context, AppRoutes.phq4Screen),
                   ),
+                  const SizedBox(height: 12),
+
+                  // Daily Affect Grid card
+                  _AssessmentCard(
+                    icon: Icons.grid_view_outlined,
+                    iconBg: const Color(0xFF7B5EA7),
+                    title: 'Mood Check',
+                    subtitle: 'How are you feeling right now?',
+                    description:
+                        'Pick the emoji that best matches your energy and mood. Takes less than 10 seconds.',
+                    frequency: 'Weekly',
+                    lastDone: 'Last: 7 days ago',
+                    isDue: true,
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.affectGridScreen),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Cognitive Load card
+                  _AssessmentCard(
+                    icon: Icons.lightbulb_outline,
+                    iconBg: const Color(0xFF3A7BD5),
+                    title: 'Focus & Memory',
+                    subtitle: 'How sharp have you felt this week?',
+                    description:
+                        'Rate how well you have been able to concentrate and remember things over the past week.',
+                    frequency: 'Weekly',
+                    lastDone: 'Last: 7 days ago',
+                    isDue: true,
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.cognitiveLoadScreen),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Sleep Satisfaction card
+                  _AssessmentCard(
+                    icon: Icons.bedtime_outlined,
+                    iconBg: const Color(0xFF1A6B7A),
+                    title: 'Sleep Quality',
+                    subtitle: 'How well did you sleep last night?',
+                    description:
+                        'Rate the quality of your sleep. This helps us understand how rest is affecting your health.',
+                    frequency: 'Weekly',
+                    lastDone: 'Last: 7 days ago',
+                    isDue: true,
+                    onTap: () =>
+                        Navigator.pushNamed(context, AppRoutes.sleepSatisfactionScreen),
+                  ),
                   const SizedBox(height: 16),
 
-                  // Progress card
+                  // Progress card — updated to 0/5
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
@@ -137,14 +185,15 @@ class WeeklyToolsScreen extends StatelessWidget {
                             Text("This Week's Progress",
                                 style: AppTextStyles.cardTitle
                                     .copyWith(fontSize: 14)),
-                            Text('0/2 completed',
+                            Text('0/5 completed',
                                 style: AppTextStyles.cardSubtitle),
                           ],
                         ),
                         const SizedBox(height: 10),
                         Row(
-                          children: [
-                            Expanded(
+                          children: List.generate(5, (i) => Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.only(right: i < 4 ? 6 : 0),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(4),
                                 child: const LinearProgressIndicator(
@@ -156,20 +205,7 @@ class WeeklyToolsScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: const LinearProgressIndicator(
-                                  value: 0,
-                                  minHeight: 6,
-                                  backgroundColor: AppColors.progressBg,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppColors.progressFill),
-                                ),
-                              ),
-                            ),
-                          ],
+                          )),
                         ),
                       ],
                     ),
@@ -218,7 +254,6 @@ class _AssessmentCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon
             Container(
               width: 48,
               height: 48,
@@ -229,8 +264,6 @@ class _AssessmentCard extends StatelessWidget {
               child: Icon(icon, color: Colors.white, size: 24),
             ),
             const SizedBox(width: 14),
-
-            // Text content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,7 +326,6 @@ class _AssessmentCard extends StatelessWidget {
                 ],
               ),
             ),
-
             const Icon(Icons.chevron_right,
                 size: 20, color: AppColors.textMedium),
           ],
@@ -459,8 +491,7 @@ class _MfgScreenState extends State<MfgScreen> {
                     fontSize: 17,
                     fontWeight: FontWeight.w700)),
             Text('Modified Ferriman-Gallwey (mFG) Assessment',
-                style: TextStyle(fontSize: 12, color: AppColors.textMedium)),
-          ],
+                style: TextStyle(fontSize: 12, color: AppColors.textMedium)),          ],
         ),
       ),
       body: _showResults ? _buildResults() : _buildAssessment(),
@@ -796,7 +827,7 @@ class _Zone {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ── Phq4Screen — PHQ-4 matching screenshots ───────────────────────────────────
+// ── Phq4Screen — PHQ-4 with depression ≥3 trigger fix ────────────────────────
 // ══════════════════════════════════════════════════════════════════════════════
 class Phq4Screen extends StatefulWidget {
   const Phq4Screen({super.key});
@@ -808,13 +839,11 @@ class _Phq4ScreenState extends State<Phq4Screen> {
   final List<int?> _answers = [null, null, null, null];
   bool _showResults = false;
 
-  // GAD-2 questions (anxiety)
   static const _gad2 = [
     'In the last week, how often have you felt nervous, anxious, or on edge?',
     'In the last week, how often have you been unable to stop or control worrying?',
   ];
 
-  // PHQ-2 questions (depression)
   static const _phq2 = [
     'In the last week, how often have you had little interest or pleasure in doing things?',
     'In the last week, how often have you felt down, depressed, or hopeless?',
@@ -832,6 +861,8 @@ class _Phq4ScreenState extends State<Phq4Screen> {
   int get _depressionScore => (_answers[2] ?? 0) + (_answers[3] ?? 0);
   bool get _complete => _answers.every((a) => a != null);
 
+  // FIX: Total score ≥6 = moderate-to-severe (spec: "Score ≥6 flags
+  // moderate-to-severe combined burden")
   String get _interpretation {
     if (_total <= 2) return 'Normal';
     if (_total <= 5) return 'Mild';
@@ -857,12 +888,14 @@ class _Phq4ScreenState extends State<Phq4Screen> {
     return AppColors.riskHigh;
   }
 
+  // FIX: Depression subscale ≥3 triggers mental health support recommendation
+  bool get _depressionTrigger => _depressionScore >= 3;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Column(
         children: [
-          // ── Teal header ───────────────────────────────────────────────
           Container(
             width: double.infinity,
             decoration: const BoxDecoration(
@@ -892,7 +925,7 @@ class _Phq4ScreenState extends State<Phq4Screen> {
                                 color: Colors.white,
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700)),
-                        Text('PHQ-4 Psychological Assessment',
+                        Text('How have you been feeling this week?',
                             style: TextStyle(
                                 color: Colors.white70, fontSize: 13)),
                       ],
@@ -902,7 +935,6 @@ class _Phq4ScreenState extends State<Phq4Screen> {
               ),
             ),
           ),
-
           Expanded(
             child: _showResults ? _buildResults() : _buildQuestions(),
           ),
@@ -920,7 +952,6 @@ class _Phq4ScreenState extends State<Phq4Screen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Info banner
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 14, vertical: 12),
@@ -958,8 +989,6 @@ class _Phq4ScreenState extends State<Phq4Screen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // GAD-2 section
                 _SectionLabel(
                     label: 'GAD-2 — Anxiety',
                     color: const Color(0xFF2A7FD4)),
@@ -974,10 +1003,7 @@ class _Phq4ScreenState extends State<Phq4Screen> {
                             setState(() => _answers[e.key] = v),
                       ),
                     )),
-
                 const SizedBox(height: 8),
-
-                // PHQ-2 section
                 _SectionLabel(
                     label: 'PHQ-2 — Depression',
                     color: const Color(0xFF8B45C8)),
@@ -996,8 +1022,6 @@ class _Phq4ScreenState extends State<Phq4Screen> {
             ),
           ),
         ),
-
-        // View Results button
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           child: SizedBox(
@@ -1098,6 +1122,61 @@ class _Phq4ScreenState extends State<Phq4Screen> {
                 ]),
                 const SizedBox(height: 14),
 
+                // FIX: Depression ≥3 mental health support recommendation banner
+                // Spec: "A PHQ-4 Depression subscale score ≥3 concurrently with
+                // a high PCOS Risk Score triggers an additional mental health
+                // support resource recommendation in the dashboard output."
+                if (_depressionTrigger) ...[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8B45C8).withOpacity(0.07),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: const Color(0xFF8B45C8).withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF8B45C8).withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.favorite_border,
+                              color: Color(0xFF8B45C8), size: 18),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: const [
+                              Text('Mental Health Support Recommended',
+                                  style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF8B45C8))),
+                              SizedBox(height: 4),
+                              Text(
+                                'Your depression subscale score is elevated (≥3). '
+                                'This will be flagged alongside your PCOS risk score. '
+                                'Speaking with a mental health professional may be beneficial.',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textMedium),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                ],
+
                 // Severity scale bar
                 Container(
                   padding: const EdgeInsets.all(16),
@@ -1109,8 +1188,7 @@ class _Phq4ScreenState extends State<Phq4Screen> {
                   child: Column(
                     children: [
                       Row(
-                        mainAxisAlignment:
-                            MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: const [
                           Text('Normal',
                               style: TextStyle(
@@ -1151,8 +1229,7 @@ class _Phq4ScreenState extends State<Phq4Screen> {
                           ),
                           Positioned(
                             left: (_total / 12) *
-                                (MediaQuery.of(context).size.width -
-                                    64),
+                                (MediaQuery.of(context).size.width - 64),
                             top: -2,
                             child: Container(
                               width: 14,
@@ -1174,8 +1251,6 @@ class _Phq4ScreenState extends State<Phq4Screen> {
             ),
           ),
         ),
-
-        // Action buttons
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           child: Row(children: [
@@ -1222,7 +1297,988 @@ class _Phq4ScreenState extends State<Phq4Screen> {
   }
 }
 
-// ── Section label ─────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// ── AffectGridScreen — 2D Arousal × Valence (3×3 emoji matrix) ───────────────
+// ══════════════════════════════════════════════════════════════════════════════
+class AffectGridScreen extends StatefulWidget {
+  const AffectGridScreen({super.key});
+  @override
+  State<AffectGridScreen> createState() => _AffectGridScreenState();
+}
+
+class _AffectGridScreenState extends State<AffectGridScreen> {
+  // Selected cell: row = arousal (0=low,1=mid,2=high), col = valence (0=neg,1=neu,2=pos)
+  int? _selectedRow;
+  int? _selectedCol;
+  bool _showResults = false;
+
+  // Arousal axis: high energy (top) → low energy (bottom)
+  static const _arousalLabels = ['High energy', 'Medium energy', 'Low energy'];
+  // Valence axis: not good (left) → good (right)
+  static const _valenceLabels = ['Not good', 'Neutral', 'Good'];
+
+  // 3×3 emoji matrix [arousal][valence]
+  static const _emojis = [
+    ['😤', '😰', '😄'], // High arousal: angry / anxious / excited
+    ['😔', '😐', '🙂'], // Mid arousal: sad / neutral / content
+    ['😞', '😴', '😌'], // Low arousal: depressed / fatigued / calm
+  ];
+
+  static const _labels = [
+    ['Angry', 'Anxious', 'Excited'],
+    ['Sad', 'Neutral', 'Content'],
+    ['Depressed', 'Fatigued', 'Calm'],
+  ];
+
+  bool get _complete => _selectedRow != null && _selectedCol != null;
+
+  String get _selectedEmoji =>
+      _complete ? _emojis[_selectedRow!][_selectedCol!] : '';
+  String get _selectedLabel =>
+      _complete ? _labels[_selectedRow!][_selectedCol!] : '';
+  String get _selectedArousal =>
+      _complete ? _arousalLabels[_selectedRow!] : '';
+  String get _selectedValence =>
+      _complete ? _valenceLabels[_selectedCol!] : '';
+
+  // Encoded as arousal (0–2) and valence (0–2) for ML feature storage
+  int get _arousalValue => _selectedRow ?? 0;
+  int get _valenceValue => _selectedCol ?? 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF7B5EA7), Color(0xFF5A3E8A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 16, 20),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.white, size: 22),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 4),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Mood Check',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700)),
+                        Text('How are you feeling right now?',
+                            style: TextStyle(
+                                color: Colors.white70, fontSize: 13)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: _showResults ? _buildResults() : _buildGrid(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGrid() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7B5EA7).withOpacity(0.07),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: const Color(0xFF7B5EA7).withOpacity(0.15)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline,
+                          size: 16, color: Color(0xFF7B5EA7)),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Tap the emoji that best matches how you feel right now. '
+                          'Think about your energy level and whether your mood feels positive or negative.',
+                          style: AppTextStyles.cardSubtitle,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Valence axis labels (top)
+                Padding(
+                  padding: const EdgeInsets.only(left: 56),
+                  child: Row(
+                    children: _valenceLabels
+                        .map((l) => Expanded(
+                              child: Text(l,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.textMedium)),
+                            ))
+                        .toList(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Grid rows
+                ...List.generate(3, (row) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Row(
+                      children: [
+                        // Arousal label
+                        SizedBox(
+                          width: 48,
+                          child: Text(_arousalLabels[row],
+                              style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textMedium)),
+                        ),
+                        const SizedBox(width: 8),
+                        // 3 cells
+                        ...List.generate(3, (col) {
+                          final isSelected =
+                              _selectedRow == row && _selectedCol == col;
+                          return Expanded(
+                            child: Padding(
+                              padding:
+                                  EdgeInsets.only(right: col < 2 ? 8 : 0),
+                              child: GestureDetector(
+                                onTap: () => setState(() {
+                                  _selectedRow = row;
+                                  _selectedCol = col;
+                                }),
+                                child: AnimatedContainer(
+                                  duration:
+                                      const Duration(milliseconds: 150),
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical: 14),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? const Color(0xFF7B5EA7)
+                                            .withOpacity(0.1)
+                                        : AppColors.surfaceWhite,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? const Color(0xFF7B5EA7)
+                                          : AppColors.cardBorder,
+                                      width: isSelected ? 1.5 : 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Text(_emojis[row][col],
+                                          style: const TextStyle(
+                                              fontSize: 24)),
+                                      const SizedBox(height: 4),
+                                      Text(_labels[row][col],
+                                          style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w400,
+                                              color: isSelected
+                                                  ? const Color(0xFF7B5EA7)
+                                                  : AppColors.textMedium)),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  );
+                }),
+
+                if (_complete) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7B5EA7).withOpacity(0.07),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: const Color(0xFF7B5EA7).withOpacity(0.2)),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(_selectedEmoji,
+                            style: const TextStyle(fontSize: 28)),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_selectedLabel,
+                                style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF7B5EA7))),
+                            Text(
+                                'Arousal: $_selectedArousal · Valence: $_selectedValence',
+                                style: const TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textMedium)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _complete
+                  ? () => setState(() => _showResults = true)
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7B5EA7),
+                disabledBackgroundColor: AppColors.progressBg,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              child: Text('View Results',
+                  style: TextStyle(
+                      color: _complete ? Colors.white : AppColors.textLight,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResults() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceWhite,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(_selectedEmoji,
+                          style: const TextStyle(fontSize: 64)),
+                      const SizedBox(height: 8),
+                      Text(_selectedLabel,
+                          style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF7B5EA7))),
+                      const SizedBox(height: 8),
+                      Text(
+                          'Energy: $_selectedArousal · Mood: $_selectedValence',
+                          style: AppTextStyles.cardSubtitle),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Row(children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => setState(() => _showResults = false),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: AppColors.cardBorder),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Edit',
+                    style: TextStyle(
+                        color: AppColors.textDark,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF7B5EA7),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Save & Continue',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15)),
+              ),
+            ),
+          ]),
+        ),
+      ],
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── CognitiveLoadScreen — Attention & Memory Self-Rating (1–5) ───────────────
+// ══════════════════════════════════════════════════════════════════════════════
+class CognitiveLoadScreen extends StatefulWidget {
+  const CognitiveLoadScreen({super.key});
+  @override
+  State<CognitiveLoadScreen> createState() => _CognitiveLoadScreenState();
+}
+
+class _CognitiveLoadScreenState extends State<CognitiveLoadScreen> {
+  int? _attentionRating;
+  int? _memoryRating;
+  bool _showResults = false;
+
+  bool get _complete => _attentionRating != null && _memoryRating != null;
+
+  static const _ratingLabels = ['Very Poor', 'Poor', 'Moderate', 'Good', 'Excellent'];
+  static const _ratingEmojis = ['😵', '😔', '😐', '🙂', '😊'];
+
+  String _label(int? v) => v != null ? _ratingLabels[v - 1] : '—';
+  String _emoji(int? v) => v != null ? _ratingEmojis[v - 1] : '';
+
+  // Average of both ratings stored as cognitive_load_score (1–5)
+  double get _cognitiveLoadScore =>
+      ((_attentionRating ?? 0) + (_memoryRating ?? 0)) / 2;
+
+  Widget _buildRatingRow(String label, int? current, ValueChanged<int> onSelect) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textDark)),
+        const SizedBox(height: 10),
+        Row(
+          children: List.generate(5, (i) {
+            final val = i + 1;
+            final isSelected = current == val;
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: i < 4 ? 8 : 0),
+                child: GestureDetector(
+                  onTap: () => onSelect(val),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.primary.withOpacity(0.1)
+                          : AppColors.surfaceWhite,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.primary
+                            : AppColors.cardBorder,
+                        width: isSelected ? 1.5 : 1,
+                      ),
+                    ),
+                    child: Column(children: [
+                      Text(_ratingEmojis[i],
+                          style: const TextStyle(fontSize: 18)),
+                      const SizedBox(height: 4),
+                      Text('$val',
+                          style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textDark)),
+                    ]),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+        if (current != null) ...[
+          const SizedBox(height: 6),
+          Text(_ratingLabels[current - 1],
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary)),
+        ],
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF3A7BD5), Color(0xFF1A5BB5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 16, 20),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.white, size: 22),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 4),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Cognitive Load',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700)),
+                        Text('Focus & memory check',
+                            style: TextStyle(
+                                color: Colors.white70, fontSize: 13)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: _showResults ? _buildResults() : _buildRatings(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRatings() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3A7BD5).withOpacity(0.07),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: const Color(0xFF3A7BD5).withOpacity(0.15)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline,
+                          size: 16, color: Color(0xFF3A7BD5)),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Rate how well you have been able to focus and remember things '
+                          'over the past week. There are no right or wrong answers.',
+                          style: TextStyle(
+                              fontSize: 13, color: AppColors.textMedium),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceWhite,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: _buildRatingRow(
+                    'Attention — How well were you able to focus?',
+                    _attentionRating,
+                    (v) => setState(() => _attentionRating = v),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceWhite,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: _buildRatingRow(
+                    'Memory — How well were you able to remember things?',
+                    _memoryRating,
+                    (v) => setState(() => _memoryRating = v),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _complete
+                  ? () => setState(() => _showResults = true)
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF3A7BD5),
+                disabledBackgroundColor: AppColors.progressBg,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              child: Text('View Results',
+                  style: TextStyle(
+                      color: _complete ? Colors.white : AppColors.textLight,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResults() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(children: [
+                  Expanded(
+                    child: _SimpleScoreCard(
+                      label: 'Attention',
+                      emoji: _emoji(_attentionRating),
+                      score: _attentionRating ?? 0,
+                      max: 5,
+                      sublabel: _label(_attentionRating),
+                      color: const Color(0xFF3A7BD5),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _SimpleScoreCard(
+                      label: 'Memory',
+                      emoji: _emoji(_memoryRating),
+                      score: _memoryRating ?? 0,
+                      max: 5,
+                      sublabel: _label(_memoryRating),
+                      color: const Color(0xFF3A7BD5),
+                    ),
+                  ),
+                ]),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Row(children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => setState(() => _showResults = false),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: AppColors.cardBorder),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Edit',
+                    style: TextStyle(
+                        color: AppColors.textDark,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3A7BD5),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Save & Continue',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15)),
+              ),
+            ),
+          ]),
+        ),
+      ],
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── SleepSatisfactionScreen — Post-Sleep Quality Rating (1–5) ────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+class SleepSatisfactionScreen extends StatefulWidget {
+  const SleepSatisfactionScreen({super.key});
+  @override
+  State<SleepSatisfactionScreen> createState() =>
+      _SleepSatisfactionScreenState();
+}
+
+class _SleepSatisfactionScreenState extends State<SleepSatisfactionScreen> {
+  int? _rating;
+  bool _showResults = false;
+
+  static const _ratingLabels = ['Very Poor', 'Poor', 'Fair', 'Good', 'Excellent'];
+  static const _ratingEmojis = ['😵', '😔', '😐', '🙂', '😴'];
+  static const _ratingDescriptions = [
+    'Barely slept, feel exhausted',
+    'Restless night, not refreshed',
+    'Some rest but could be better',
+    'Good sleep, feeling rested',
+    'Excellent sleep, fully refreshed',
+  ];
+
+  bool get _complete => _rating != null;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF1A6B7A), Color(0xFF0D4A55)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(8, 4, 16, 20),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.white, size: 22),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 4),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text('Sleep Quality',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700)),
+                        Text('Rate last night\'s sleep',
+                            style: TextStyle(
+                                color: Colors.white70, fontSize: 13)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: _showResults ? _buildResults() : _buildRating(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRating() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1A6B7A).withOpacity(0.07),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: const Color(0xFF1A6B7A).withOpacity(0.15)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Icon(Icons.info_outline,
+                          size: 16, color: Color(0xFF1A6B7A)),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'How would you rate the quality of last night\'s sleep? '
+                          'This cross-validates passive sleep tracking data.',
+                          style: TextStyle(
+                              fontSize: 13, color: AppColors.textMedium),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                const Text('Rate your sleep quality',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textDark)),
+                const SizedBox(height: 16),
+
+                // 5 rating cards stacked
+                ...List.generate(5, (i) {
+                  final val = i + 1;
+                  final isSelected = _rating == val;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: GestureDetector(
+                      onTap: () => setState(() => _rating = val),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFF1A6B7A).withOpacity(0.07)
+                              : AppColors.surfaceWhite,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected
+                                ? const Color(0xFF1A6B7A)
+                                : AppColors.cardBorder,
+                            width: isSelected ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(children: [
+                          Text(_ratingEmojis[i],
+                              style: const TextStyle(fontSize: 28)),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('$val — ${_ratingLabels[i]}',
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? const Color(0xFF1A6B7A)
+                                            : AppColors.textDark)),
+                                const SizedBox(height: 2),
+                                Text(_ratingDescriptions[i],
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.textMedium)),
+                              ],
+                            ),
+                          ),
+                          if (isSelected)
+                            const Icon(Icons.check_circle,
+                                color: Color(0xFF1A6B7A), size: 20),
+                        ]),
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _complete
+                  ? () => setState(() => _showResults = true)
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1A6B7A),
+                disabledBackgroundColor: AppColors.progressBg,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              child: Text('View Results',
+                  style: TextStyle(
+                      color: _complete ? Colors.white : AppColors.textLight,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResults() {
+    return Column(
+      children: [
+        Expanded(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(28),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceWhite,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(_ratingEmojis[(_rating ?? 1) - 1],
+                          style: const TextStyle(fontSize: 64)),
+                      const SizedBox(height: 8),
+                      Text('${_rating ?? 0} / 5',
+                          style: const TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textDark,
+                              height: 1.0)),
+                      const SizedBox(height: 4),
+                      Text(_ratingLabels[(_rating ?? 1) - 1],
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A6B7A))),
+                      const SizedBox(height: 4),
+                      Text(_ratingDescriptions[(_rating ?? 1) - 1],
+                          style: AppTextStyles.cardSubtitle,
+                          textAlign: TextAlign.center),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          child: Row(children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => setState(() => _showResults = false),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: AppColors.cardBorder),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Edit',
+                    style: TextStyle(
+                        color: AppColors.textDark,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15)),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1A6B7A),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Save & Continue',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15)),
+              ),
+            ),
+          ]),
+        ),
+      ],
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ── Shared small widgets ──────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+
 class _SectionLabel extends StatelessWidget {
   final String label;
   final Color color;
@@ -1234,7 +2290,6 @@ class _SectionLabel extends StatelessWidget {
           fontSize: 14, fontWeight: FontWeight.w700, color: color));
 }
 
-// ── Question card with 2×2 grid options ──────────────────────────────────────
 class _QuestionCard extends StatelessWidget {
   final String question;
   final List<String> options;
@@ -1266,7 +2321,6 @@ class _QuestionCard extends StatelessWidget {
           Text(question,
               style: AppTextStyles.cardTitle.copyWith(fontSize: 14)),
           const SizedBox(height: 14),
-          // 2×2 grid
           Column(
             children: [
               Row(children: [
@@ -1307,16 +2361,14 @@ class _OptionTile extends StatelessWidget {
       onTap: () => onTap(value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.primary.withOpacity(0.08)
               : AppColors.background,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-              color:
-                  isSelected ? AppColors.primary : AppColors.cardBorder,
+              color: isSelected ? AppColors.primary : AppColors.cardBorder,
               width: isSelected ? 1.5 : 1),
         ),
         child: Text(label,
@@ -1332,7 +2384,6 @@ class _OptionTile extends StatelessWidget {
   }
 }
 
-// ── Sub-score card ────────────────────────────────────────────────────────────
 class _SubScoreCard extends StatelessWidget {
   final String label, statusLabel;
   final Color labelColor, statusColor;
@@ -1381,5 +2432,87 @@ class _SubScoreCard extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                   color: statusColor)),
         ]),
+      );
+}
+
+class _SimpleScoreCard extends StatelessWidget {
+  final String label, emoji, sublabel;
+  final int score, max;
+  final Color color;
+
+  const _SimpleScoreCard({
+    required this.label,
+    required this.emoji,
+    required this.score,
+    required this.max,
+    required this.sublabel,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+            color: AppColors.surfaceWhite,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.cardBorder)),
+        child: Column(children: [
+          Text(label,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: color)),
+          const SizedBox(height: 8),
+          Text(emoji, style: const TextStyle(fontSize: 28)),
+          const SizedBox(height: 4),
+          RichText(
+              text: TextSpan(children: [
+            TextSpan(
+                text: '$score',
+                style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textDark)),
+            TextSpan(
+                text: ' / $max',
+                style: const TextStyle(
+                    fontSize: 13, color: AppColors.textMedium)),
+          ])),
+          const SizedBox(height: 4),
+          Text(sublabel,
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: color)),
+        ]),
+      );
+}
+
+// Shared ML variable row used across all result screens
+class _MLRow extends StatelessWidget {
+  final String label, value;
+  const _MLRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(label,
+                  style: const TextStyle(
+                      fontSize: 11,
+                      fontFamily: 'monospace',
+                      color: AppColors.textMedium)),
+            ),
+            const SizedBox(width: 8),
+            Text(value,
+                style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textDark)),
+          ],
+        ),
       );
 }

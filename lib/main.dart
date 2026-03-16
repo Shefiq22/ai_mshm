@@ -12,15 +12,14 @@ import 'onboard.dart';           // OnboardingFlow
 import 'onboarding.dart';        // OnboardingWearable, OnboardingRPPG, OnboardingComplete
 import 'dashboard.dart';         // DashboardScreen
 import 'checkin.dart';           // MorningCheckinScreen, AfternoonCheckinScreen, EveningCheckinScreen
-import 'cycle.dart';             // CycleCalendarScreen
+import 'cycle.dart';             // CycleCalendarScreen, PeriodLogScreen ← moved from risk_screens
 import 'weekly_tools.dart';      // WeeklyToolsScreen, MfgScreen, Phq4Screen
 import 'clinical_screens.dart';  // LabUploadScreen, UltrasoundUploadScreen, ClinicalStatusScreen
-import 'risk_screens.dart';      // RiskScoreScreen, RiskTrendScreen, ShapDetailScreen,
-                                 // TriageNoLabsScreen, PeriodLogScreen
+import 'risk_screens.dart';      // RiskScoreScreen, RiskTrendScreen, ShapDetailScreen, TriageNoLabsScreen
 import 'referral_pdf.dart';      // ReferralScreen, ClinicalPdfScreen
 import 'profile.dart';           // ProfileScreen, NotificationSettingsScreen,
                                  // ConnectedDevicesScreen, DataPrivacyScreen
-import 'app_notifications.dart';      // NotificationsScreen
+import 'app_notifications.dart'; // NotificationsScreen
 
 final _notificationsNotifier = NotificationsNotifier();
 
